@@ -14,3 +14,8 @@ void expect(bool condition, string&& message) {
 	}
 }
 
+void fail(string&& message) {
+	cerr << message << endl;
+	test_results = false;
+}
+

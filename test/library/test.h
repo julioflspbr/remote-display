@@ -6,6 +6,7 @@
 extern bool test_results;
 
 void expect(bool condition, std::string&& message);
+void fail(std::string&& message);
 
 #endif
 
