@@ -10,6 +10,7 @@ CC = clang++
 CFLAGS = -std=c++11 -Wall
 RELEASE_FLAGS = -O2
 DEBUG_FLAGS = -O0 -g
+BOARD = arduino:avr:mega
 
 MODE ?= debug
 ifeq ($(MODE), release)
@@ -30,6 +31,12 @@ IGNORING := test $(TESTING) clean
 ###############################################
 #                  Recipes                    #
 ###############################################
+
+build:
+	arduino-cli compile --fqbn $(BOARD) --build-property "compiler.cpp.extra_flags=$(headers)"
+
+upload:
+	arduino-cli --fbqn $(BOARD) --port $(PORT)
 
 clean:
 	rm $(TESTING)
