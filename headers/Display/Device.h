@@ -4,21 +4,21 @@
 #include "Definitions.h"
 
 namespace Display {
-	namespace Adapter {
-		struct Adapter;
-	}
-
+	template<typename Adapter>
 	class Device final {
-		struct Adapter::Adapter& _adapter;
+		Adapter& _adapter;
 
 		int _cursor[2] = {};
 		bool _isDisplayOn = false;
 		bool _isCursorVisible = false;
 		bool _isCursorBlinking = false;
 
-	public:
-		Device(struct Adapter::Adapter&);
+		void wait(void);
 
+	public:
+		Device(Adapter&);
+
+		void begin(void);
 		void write(const char*);
 		void breakLine(void);
 		void clear(void);

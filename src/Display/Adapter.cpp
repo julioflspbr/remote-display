@@ -2,40 +2,36 @@
 #include <Display/Adapter.h>
 
 using namespace Display;
+using Port = Adapter::Port;
 using Command = Adapter::Command;
 using Parameters = Adapter::Parameters;
 
 //
-// Definitions
-//
-#define BUSY_FLAG_DATA_BIT 7
-
-//
 // Helper definitions
 //
-void setPinModes(const Pin data[BYTE_SIZE], int pinMode);
-void setDataPins(const Pin data[BYTE_SIZE], Byte byte);
-inline void clear(const Pin data[BYTE_SIZE]);
-inline void setEntryMode(const Pin data[BYTE_SIZE], CursorDirection direction, bool autoShift);
-inline void setDisplayControl(const Pin data[BYTE_SIZE], bool isDisplayOn, bool isCursorOn, bool isBlinkOn);
-inline void set(const Pin data[BYTE_SIZE], FunctionSet::DataLength dataLength, FunctionSet::Lines lines, FunctionSet::FontSize fontSize);
-inline void setDDRAMAddress(const Pin data[BYTE_SIZE], Line line);
-inline void writeCharacter(char character);
+template<Port P> inline void setPortMode(int pinMode);
+template<Port P> inline Byte data(void);
+template<Port P> inline void setData(Byte byte);
+template<Port P> inline void clear(void);
+template<Port P> inline void setEntryMode(CursorDirection direction, bool autoShift);
+template<Port P> inline void setDisplayControl(bool isDisplayOn, bool isCursorOn, bool isBlinkOn);
+template<Port P> inline void set(FunctionSet::DataLength dataLength, FunctionSet::Lines lines, FunctionSet::FontSize fontSize);
+template<Port P> inline void setDDRAMAddress(Line line);
 
 //
 // Display::Adapter implementation
 //
-Adapter::Adapter::Adapter(const Pins& pins): pins(pins) {
+template<Port P> Adapter::Adapter<P>::Adapter(const Pins& pins): pins(pins) {
 	pinMode(pins.rs, OUTPUT);
 	pinMode(pins.rw, OUTPUT);
 	pinMode(pins.e, OUTPUT);
 }
 
-void Adapter::Adapter::sleep(int milliseconds) {
+template<Port P> void Adapter::Adapter<P>::sleep(int milliseconds) {
 	delay(milliseconds);
 }
 
-void Adapter::Adapter::setRegisterSelect(RegisterSelect registerSelect) {
+template<Port P> void Adapter::Adapter<P>::setRegisterSelect(RegisterSelect registerSelect) {
 	int pinValue;
 
 	switch (registerSelect) {
@@ -50,109 +46,226 @@ void Adapter::Adapter::setRegisterSelect(RegisterSelect registerSelect) {
 	digitalWrite(this->pins.rs, pinValue);
 }
 
-void Adapter::Adapter::setReadWrite(ReadWrite readWrite) {
+template<Port P> void Adapter::Adapter<P>::setReadWrite(ReadWrite readWrite) {
 	int pinValue;
 
 	switch (readWrite) {
 		case ReadWrite::Write:
 			pinValue = LOW;
-			setPinModes(pins.data, OUTPUT);
+			setPortMode<P>(OUTPUT);
 			break;
 		case ReadWrite::Read:
 			pinValue = HIGH;
-			setPinModes(pins.data, INPUT);
+			setPortMode<P>(INPUT);
 			break;
 	}
 
 	digitalWrite(this->pins.rw, pinValue);
 }
 
-void Adapter::Adapter::setReadyToExecute(bool isEnabled) {
+template<Port P> void Adapter::Adapter<P>::setReadyToExecute(bool isEnabled) {
 	int pinValue = isEnabled ? HIGH : LOW;
 	digitalWrite(this->pins.e, pinValue);
 }
 
-void Adapter::Adapter::setCommand(Command command) {
+template<Port P> void Adapter::Adapter<P>::setCommand(Command command) {
 	this->setCommand(command, {});
 }
 
-void Adapter::Adapter::setCommand(Command command, Parameters parameters) {
+template<Port P> void Adapter::Adapter<P>::setCommand(Command command, Parameters parameters) {
 	switch (command) {
 		case Command::Clear: {
-			clear(this->pins.data);
+			clear<P>();
 			break;
 		}
 		case Command::EntryMode: {
 			auto entryMode = parameters.entryMode;
-			setEntryMode(this->pins.data, entryMode.direction, entryMode.autoShift);
+			setEntryMode<P>(entryMode.direction, entryMode.autoShift);
 			break;
 		}
 		case Command::DisplayControl: {
 			auto displayControl = parameters.displayControl;
-			setDisplayControl(this->pins.data, displayControl.isDisplayOn, displayControl.isCursorOn, displayControl.isBlinkOn);
+			setDisplayControl<P>(displayControl.isDisplayOn, displayControl.isCursorOn, displayControl.isBlinkOn);
 			break;
 		}
 		case Command::FunctionSet: {
 			auto functionSet = parameters.functionSet;
-			set(this->pins.data, functionSet.dataLength, functionSet.lines, functionSet.fontSize);
+			set<P>(functionSet.dataLength, functionSet.lines, functionSet.fontSize);
 			break;
 		}
 		case Command::DDRAMAddress: {
 			auto ddramAddress = parameters.ddramAddress;
-			setDDRAMAddress(this->pins.data, ddramAddress.line);
+			setDDRAMAddress<P>(ddramAddress.line);
 			break;
 		}
 	}
 }
 
-void Adapter::Adapter::setCharacter(char character) {
-	setDataPins(this->pins.data, static_cast<Byte>(character));
+template<Port P> void Adapter::Adapter<P>::setCharacter(char character) {
+	setData<P>(static_cast<Byte>(character));
 }
 
-bool Adapter::Adapter::isBusy() const {
-	return digitalRead(this->pins.data[BUSY_FLAG_DATA_BIT]) == HIGH;
+template<Port P> bool Adapter::Adapter<P>::isBusy() const {
+	return data<P>() & 0x80;
 }
 
 //
 // Helper implementations
 //
 
-void setPinModes(const Pin data[BYTE_SIZE], int mode) {
-	for (int i = 0; i < BYTE_SIZE; ++i) {
-		pinMode(data[i], mode);
-	}
+template<> void setPortMode<Port::A>(int mode) {
+	DDRA = (mode == OUTPUT ? 0xFF : 0x00);
 }
 
-void setDataPins(const Pin data[BYTE_SIZE], Byte byte) {
-	for (int i = 0; i < BYTE_SIZE; ++i) {
-		bool value = byte & 0x1;
-		int pinValue = value ? HIGH : LOW;
-		byte = byte >> 1;
-		digitalWrite(data[i], pinValue);
-	}
+template<> void setPortMode<Port::B>(int mode) {
+	DDRB = (mode == OUTPUT ? 0xFF : 0x00);
 }
 
-void clear(const Pin data[BYTE_SIZE]) {
-	setDataPins(data, 0x1);
+template<> void setPortMode<Port::C>(int mode) {
+	DDRC = (mode == OUTPUT ? 0xFF : 0x00);
 }
 
-void setEntryMode(const Pin data[BYTE_SIZE], CursorDirection d, bool autoShift) {
+template<> void setPortMode<Port::D>(int mode) {
+	DDRD = (mode == OUTPUT ? 0xFF : 0x00);
+}
+
+template<> void setPortMode<Port::E>(int mode) {
+	DDRE = (mode == OUTPUT ? 0xFF : 0x00);
+}
+
+template<> void setPortMode<Port::F>(int mode) {
+	DDRF = (mode == OUTPUT ? 0xFF : 0x00);
+}
+
+template<> void setPortMode<Port::G>(int mode) {
+	DDRG = (mode == OUTPUT ? 0xFF : 0x00);
+}
+
+template<> void setPortMode<Port::H>(int mode) {
+	DDRH = (mode == OUTPUT ? 0xFF : 0x00);
+}
+
+template<> void setPortMode<Port::J>(int mode) {
+	DDRJ = (mode == OUTPUT ? 0xFF : 0x00);
+}
+
+template<> void setPortMode<Port::K>(int mode) {
+	DDRK = (mode == OUTPUT ? 0xFF : 0x00);
+}
+
+template<> void setPortMode<Port::L>(int mode) {
+	DDRL = (mode == OUTPUT ? 0xFF : 0x00);
+}
+
+template<> Byte data<Port::A>() {
+	return PINA;
+}
+
+template<> Byte data<Port::B>() {
+	return PINB;
+}
+
+template<> Byte data<Port::C>() {
+	return PINC;
+}
+
+template<> Byte data<Port::D>() {
+	return PIND;
+}
+
+template<> Byte data<Port::E>() {
+	return PINE;
+}
+
+template<> Byte data<Port::F>() {
+	return PINF;
+}
+
+template<> Byte data<Port::G>() {
+	return PING;
+}
+
+template<> Byte data<Port::H>() {
+	return PINH;
+}
+
+template<> Byte data<Port::J>() {
+	return PINJ;
+}
+
+template<> Byte data<Port::K>() {
+	return PINK;
+}
+
+template<> Byte data<Port::L>() {
+	return PINL;
+}
+
+template<> void setData<Port::A>(Byte byte) {
+	PORTA = byte;
+}
+
+template<> void setData<Port::B>(Byte byte) {
+	PORTB = byte;
+}
+
+template<> void setData<Port::C>(Byte byte) {
+	PORTC = byte;
+}
+
+template<> void setData<Port::D>(Byte byte) {
+	PORTD = byte;
+}
+
+template<> void setData<Port::E>(Byte byte) {
+	PORTE = byte;
+}
+
+template<> void setData<Port::F>(Byte byte) {
+	PORTF = byte;
+}
+
+template<> void setData<Port::G>(Byte byte) {
+	PORTG = byte;
+}
+
+template<> void setData<Port::H>(Byte byte) {
+	PORTH = byte;
+}
+
+template<> void setData<Port::J>(Byte byte) {
+	PORTJ = byte;
+}
+
+template<> void setData<Port::K>(Byte byte) {
+	PORTK = byte;
+}
+
+template<> void setData<Port::L>(Byte byte) {
+	PORTL = byte;
+}
+
+template<Port P> void clear() {
+	setData<P>(0x1);
+}
+
+template<Port P> void setEntryMode(CursorDirection d, bool autoShift) {
 	Byte byte = 0x4;
 	int direction = static_cast<int>(d);
 	byte = byte | (autoShift 			<< 0);
 	byte = byte | (direction			<< 1);
-	setDataPins(data, byte);
+	setData<P>(byte);
 }
 
-void setDisplayControl(const Pin data[BYTE_SIZE], bool isDisplayOn, bool isCursorOn, bool isBlinkOn) {
+template<Port P> void setDisplayControl(bool isDisplayOn, bool isCursorOn, bool isBlinkOn) {
 	Byte byte = 0x8;
 	byte = byte | (isBlinkOn 			<< 0);
 	byte = byte | (isCursorOn 		<< 1);
 	byte = byte | (isDisplayOn 		<< 2);
-	setDataPins(data, byte);
+	setData<P>(byte);
 }
 
-void set(const Pin data[BYTE_SIZE], FunctionSet::DataLength dl, FunctionSet::Lines l, FunctionSet::FontSize fs) {
+template<Port P> void set(FunctionSet::DataLength dl, FunctionSet::Lines l, FunctionSet::FontSize fs) {
 	Byte byte = 0x20;
 	int dataLength = static_cast<int>(dl);
 	int lines = static_cast<int>(l);
@@ -161,13 +274,24 @@ void set(const Pin data[BYTE_SIZE], FunctionSet::DataLength dl, FunctionSet::Lin
 	byte = byte | (fontSize 			<< 2);
 	byte = byte | (lines 					<< 3);
 	byte = byte | (dataLength 		<< 4);
-	setDataPins(data, byte);
+	setData<P>(byte);
 }
 
-void setDDRAMAddress(const Pin data[BYTE_SIZE], Line line) {
+template<Port P> void setDDRAMAddress(Line line) {
 	Byte byte = 0x80;
 	int address = static_cast<int>(line);
 	byte = byte | address;
-	setDataPins(data, byte);
+	setData<P>(byte);
 }
 
+template struct Adapter::Adapter<Port::A>;
+template struct Adapter::Adapter<Port::B>;
+template struct Adapter::Adapter<Port::C>;
+template struct Adapter::Adapter<Port::D>;
+template struct Adapter::Adapter<Port::E>;
+template struct Adapter::Adapter<Port::F>;
+template struct Adapter::Adapter<Port::G>;
+template struct Adapter::Adapter<Port::H>;
+template struct Adapter::Adapter<Port::J>;
+template struct Adapter::Adapter<Port::K>;
+template struct Adapter::Adapter<Port::L>;
