@@ -5,6 +5,7 @@
 
 namespace Display {
 	namespace Adapter {
+		template<Port P>
 		struct Adapter {
 			const Pins pins;
 

@@ -7,23 +7,25 @@
 
 using namespace std;
 using namespace Display;
+using Port = Adapter::Port;
 
 Tests* Tests::sut = new DeviceTests;
 
-static Display::Adapter::Pins testPins = {1, 2, 3, {4, 5, 6, 7, 8, 9, 10, 11}};
+static Display::Adapter::Pins testPins = {1, 2, 3};
 
 //
 // Private method declarations
 //
-bool isPinSet(unsigned long long pinState, int pin);
-char extractData(unsigned long long pinState, int firstDataPin);
-void checkExecuteCommand(const string& funcName, struct Adapter::Adapter& spy, char value, const string& representation);
-void checkWriteCommand(const string& funcName, queue<unsigned long long>& pinLog, char value, const string& representation);
-void checkWriteData(const string& funcName, queue<unsigned long long>& pinLog, char value, const string& representation);
-void checkExecutionRise(const string& funcName, queue<unsigned long long>& pinLog);
-void checkExecutionFall(const string& funcName, queue<unsigned long long>& pinLog);
-void checkBusyFlag(const string& funcName, queue<unsigned long long>& pinLog);
-void checkCleanState(const string& funcName, queue<unsigned long long>& pinLog);
+bool isPinSet(unsigned short pinState, int pin);
+char extractData(unsigned short pinState);
+void checkDelay(const string& funcName, queue<unsigned short>& pinLog, int delay, const string& delayText);
+void checkExecuteCommand(const string& funcName, queue<unsigned short>& pinLog, char value, const string& representation);
+void checkWriteCommand(const string& funcName, queue<unsigned short>& pinLog, char value, const string& representation);
+void checkWriteData(const string& funcName, queue<unsigned short>& pinLog, char value, const string& representation);
+void checkExecutionRise(const string& funcName, queue<unsigned short>& pinLog);
+void checkExecutionFall(const string& funcName, queue<unsigned short>& pinLog);
+void checkBusyFlag(const string& funcName, queue<unsigned short>& pinLog);
+void checkCleanState(const string& funcName, queue<unsigned short>& pinLog);
 
 //
 // Public method implementations
@@ -44,67 +46,65 @@ void DeviceTests::run() {
 
 void DeviceTests::testInit() {
 	// given
-	Adapter::Adapter spy(testPins);
+	queue<unsigned short> pinLog;
+	Adapter::Adapter<Port::A> spy(testPins);
+	Device<decltype(spy)> sut(spy);
 
 	// when
-	Device sut(spy);
+	sut.begin();
 
 	// then
-	auto pinLog = spy.flushLog();
+	pinLog = spy.flushLog();
 
 	// initialisation: following datasheet instruction
-	expect(spy.delay(pinLog) > 15, "The first delay during the display initialisation needs to wait for at least 15ms");
-	checkWriteCommand("display initialisation", pinLog, 0x38, "0x38");
-	checkExecutionRise("display initialisation", pinLog);
-	expect(spy.delay(pinLog) >= 5, "The first delay during the display initialisation needs to wait for at least 4.1ms");
-	checkWriteCommand("display initialisation", pinLog, 0x38, "0x38");
-	checkExecutionRise("display initialisation", pinLog);
-	checkWriteCommand("display initialisation", pinLog, 0x38, "0x38");
-	checkExecutionRise("display initialisation", pinLog);
-	checkBusyFlag("display initialisation", pinLog);
-	checkExecutionRise("display initialisation", pinLog);
+	checkDelay("begin()", pinLog, 15, "15");
+	checkWriteCommand("begin()", pinLog, 0x30, "0x30");
+	checkExecutionRise("begin()", pinLog);
+	checkDelay("begin()", pinLog, 5, "5");
+	checkWriteCommand("begin()", pinLog, 0x30, "0x30");
+	checkExecutionRise("begin()", pinLog);
+	checkDelay("begin()", pinLog, 1, "1");
+	checkWriteCommand("begin()", pinLog, 0x30, "0x30");
+	checkExecutionRise("begin()", pinLog);
 
 	// function set - data length: 8 bits, lines: 2 lines, font size: 8 pixels
-	checkWriteCommand("display initialisation", pinLog, 0x38, "0x38");
-	checkExecutionRise("display initialisation", pinLog);
-	checkBusyFlag("display initialisation", pinLog);
-	checkExecutionRise("display initialisation", pinLog);
+	checkWriteCommand("begin()", pinLog, 0x38, "0x38");
+	checkExecutionRise("begin()", pinLog);
 
 	// display: off
-	checkWriteCommand("display initialisation", pinLog, 0x8, "0x8");
-	checkExecutionRise("display initialisation", pinLog);
-	checkBusyFlag("display initialisationion", pinLog);
-	checkExecutionRise("display initialisationion", pinLog);
+	checkWriteCommand("begin()", pinLog, 0x8, "0x8");
+	checkExecutionRise("begin()", pinLog);
+	checkBusyFlag("begin()ion", pinLog);
+	checkExecutionRise("begin()ion", pinLog);
 
 	// clear
-	checkWriteCommand("display initialisationion", pinLog, 0x1, "0x1");
-	checkExecutionRise("display initialisation", pinLog);
-	checkBusyFlag("display initialisation", pinLog);
-	checkExecutionRise("display initialisation", pinLog);
+	checkWriteCommand("begin()ion", pinLog, 0x1, "0x1");
+	checkExecutionRise("begin()", pinLog);
+	checkBusyFlag("begin()", pinLog);
+	checkExecutionRise("begin()", pinLog);
 
 	// entry mode: increment
-	checkWriteCommand("display initialisation", pinLog, 0x6, "0x6");
-	checkExecutionRise("display initialisation", pinLog);
-	checkBusyFlag("display initialisation", pinLog);
-	checkExecutionRise("display initialisation", pinLog);
+	checkWriteCommand("begin()", pinLog, 0x6, "0x6");
+	checkExecutionRise("begin()", pinLog);
+	checkBusyFlag("begin()", pinLog);
+	checkExecutionRise("begin()", pinLog);
 
 	// display: off
-	checkWriteCommand("display initialisation", pinLog, 0xC, "0xC");
-	checkExecutionRise("display initialisation", pinLog);
-	checkBusyFlag("display initialisationion", pinLog);
-	checkExecutionRise("display initialisationion", pinLog);
+	checkWriteCommand("begin()", pinLog, 0xC, "0xC");
+	checkExecutionRise("begin()", pinLog);
+	checkBusyFlag("begin()ion", pinLog);
+	checkExecutionRise("begin()ion", pinLog);
 
 	// verify clean after init
-	checkExecutionFall("display initialisation", pinLog);
-	checkCleanState("display initialisation", pinLog);
+	checkExecutionFall("begin()", pinLog);
+	checkCleanState("begin()", pinLog);
 }
 
 void DeviceTests::testClear() {
 	// given
-	queue<unsigned long long> pinLog;
-	Adapter::Adapter spy(testPins);
-	Device sut(spy);
-	spy.flushLog();
+	queue<unsigned short> pinLog;
+	Adapter::Adapter<Port::B> spy(testPins);
+	Device<decltype(spy)> sut(spy);
 	spy.setBusyCount(2);
 
 	// when
@@ -126,36 +126,34 @@ void DeviceTests::testClear() {
 	// check read the busy flag (third attempt, busy is clear)
 	checkBusyFlag("clear()", pinLog);
 	checkExecutionRise("clear()", pinLog);
-
-	// exit clean
-	checkExecutionFall("clear()", pinLog);
-	checkCleanState("clear()", pinLog);
+	
 }
 
 void DeviceTests::testEntryMode() {
 	// given
-	Adapter::Adapter spy(testPins);
-	Device sut(spy);
-	spy.flushLog();
+	queue<unsigned short> pinLog;
+	Adapter::Adapter<Port::C> spy(testPins);
+	Device<decltype(spy)> sut(spy);
 
 	// when
 	sut.setEntryMode(CursorDirection::Increment);
 	// then
-	checkExecuteCommand("setEntryMode(CursorDirection::Increment)", spy, 0x6, "0x6");
+	pinLog = spy.flushLog();
+	checkExecuteCommand("setEntryMode(CursorDirection::Increment)", pinLog, 0x6, "0x6");
 
 	// when
 	sut.setEntryMode(CursorDirection::Decrement);
 	// then
-	checkExecuteCommand("setEntryMode(CursorDirection::Decrement)", spy, 0x4, "0x4");
+	pinLog = spy.flushLog();
+	checkExecuteCommand("setEntryMode(CursorDirection::Decrement)", pinLog, 0x4, "0x4");
 }
 
 void DeviceTests::testWrite() {
 	// given
 	string funcName = "write('Ola')";
-	queue<unsigned long long> pinLog;
-	Adapter::Adapter spy(testPins);
-	Device sut(spy);
-	spy.flushLog();
+	queue<unsigned short> pinLog;
+	Adapter::Adapter<Port::D> spy(testPins);
+	Device<decltype(spy)> sut(spy);
 
 	// when
 	sut.write("Ola");
@@ -188,20 +186,22 @@ void DeviceTests::testWrite() {
 
 void DeviceTests::testBreakLine() {
 	// given
-	Adapter::Adapter spy(testPins);
-	Device sut(spy);
-	spy.flushLog();
+	queue<unsigned short> pinLog;
+	Adapter::Adapter<Port::E> spy(testPins);
+	Device<decltype(spy)> sut(spy);
 
 	// when
 	sut.breakLine();
 	// then
-	checkExecuteCommand("breakLine()", spy, 0xC0, "0xC0");
+	pinLog = spy.flushLog();
+	checkExecuteCommand("breakLine()", pinLog, 0xC0, "0xC0");
 }
 
 void DeviceTests::testDisplayOn() {
 	// given
-	Adapter::Adapter spy(testPins);
-	Device sut(spy);
+	queue<unsigned short> pinLog;
+	Adapter::Adapter<Port::F> spy(testPins);
+	Device<decltype(spy)> sut(spy);
 
 	sut.setCursorVisible(false);
 	sut.setCursorBlinking(false);
@@ -210,18 +210,21 @@ void DeviceTests::testDisplayOn() {
 	// when
 	sut.setDisplayOn(true);
 	// then
-	checkExecuteCommand("setDisplayOn(true)", spy, 0xC, "0xC");
+	pinLog = spy.flushLog();
+	checkExecuteCommand("setDisplayOn(true)", pinLog, 0xC, "0xC");
 
 	// when
 	sut.setDisplayOn(false);
 	// then
-	checkExecuteCommand("setDisplayOn(false)", spy, 0x8, "0x8");
+	pinLog = spy.flushLog();
+	checkExecuteCommand("setDisplayOn(false)", pinLog, 0x8, "0x8");
 }
 
 void DeviceTests::testCursorVisible() {
 	// given
-	Adapter::Adapter spy(testPins);
-	Device sut(spy);
+	queue<unsigned short> pinLog;
+	Adapter::Adapter<Port::G> spy(testPins);
+	Device<decltype(spy)> sut(spy);
 
 	sut.setDisplayOn(false);
 	sut.setCursorBlinking(false);
@@ -230,18 +233,21 @@ void DeviceTests::testCursorVisible() {
 	// when
 	sut.setCursorVisible(true);
 	// then
-	checkExecuteCommand("setCursorVisible(true)", spy, 0xA, "0xA");
+	pinLog = spy.flushLog();
+	checkExecuteCommand("setCursorVisible(true)", pinLog, 0xA, "0xA");
 
 	// when
 	sut.setCursorVisible(false);
 	// then
-	checkExecuteCommand("setCursorVisible(false)", spy, 0x8, "0x8");
+	pinLog = spy.flushLog();
+	checkExecuteCommand("setCursorVisible(false)", pinLog, 0x8, "0x8");
 }
 
 void DeviceTests::testCursorBlinking() {
 	// given
-	Adapter::Adapter spy(testPins);
-	Device sut(spy);
+	queue<unsigned short> pinLog;
+	Adapter::Adapter<Port::H> spy(testPins);
+	Device<decltype(spy)> sut(spy);
 
 	sut.setDisplayOn(false);
 	sut.setCursorVisible(false);
@@ -250,33 +256,28 @@ void DeviceTests::testCursorBlinking() {
 	// when
 	sut.setCursorBlinking(true);
 	// then
-	checkExecuteCommand("setCursorBlinking(true)", spy, 0x9, "0x9");
+	pinLog = spy.flushLog();
+	checkExecuteCommand("setCursorBlinking(true)", pinLog,  0x9, "0x9");
 
 	// when
 	sut.setCursorBlinking(false);
 	// then
-	checkExecuteCommand("setCursorBlinking(false)", spy, 0x8, "0x8");
+	pinLog = spy.flushLog();
+	checkExecuteCommand("setCursorBlinking(false)", pinLog, 0x8, "0x8");
 }
 
 //
 // Private method implementations
 //
-bool isPinSet(unsigned long long pinState, int pin) {
-	return pinState & (0x8000000000000000 >> (pin - 1));
+bool isPinSet(unsigned short pinState, int pin) {
+	return pinState & (1 << (sizeof(unsigned char) * 8 + pin - 1));
 }
 
-char extractData(unsigned long long pinState, int firstDataPin) {
-	unsigned long long data = (pinState & (0xFF00000000000000 >> (firstDataPin - 1)));
-	char x = (char)(data >> ((sizeof(unsigned long long) - sizeof(char)) * 8 - firstDataPin + 1));
-	x = (x & 0x7E) | ((x & 0x80) >> 7) | ((x & 0x01) << 7);
-	x = (x & 0xBD) | ((x & 0x40) >> 5) | ((x & 0x02) << 5);
-	x = (x & 0xDB) | ((x & 0x20) >> 3) | ((x & 0x04) << 3);
-	x = (x & 0xE7) | ((x & 0x10) >> 1) | ((x & 0x08) << 1);
-	return x;
+char extractData(unsigned short pinState) {
+	return (char)pinState;
 }
 
-void checkExecuteCommand(const string& funcName, struct Adapter::Adapter& spy, char value, const string& representation) {
-	auto pinLog = spy.flushLog();
+void checkExecuteCommand(const string& funcName, queue<unsigned short>& pinLog, char value, const string& representation) {
 	checkWriteCommand(funcName, pinLog, value, representation);
 	checkExecutionRise(funcName, pinLog);
 	checkBusyFlag(funcName, pinLog);
@@ -285,71 +286,80 @@ void checkExecuteCommand(const string& funcName, struct Adapter::Adapter& spy, c
 	checkCleanState(funcName, pinLog);
 }
 
-void checkWriteCommand(const string& funcName, queue<unsigned long long>& pinLog, char value, const string& representation) {
+void checkWriteCommand(const string& funcName, queue<unsigned short>& pinLog, char value, const string& representation) {
 	if (pinLog.empty()) {
 		fail("There are no remaining commands to run " + funcName);
 		return;
 	}
 
-	unsigned long long pinState = pinLog.front();
+	unsigned short pinState = pinLog.front();
 	expect(!isPinSet(pinState, testPins.e), "Execution needs to be low when setting command pins for " + funcName);
 	expect(!isPinSet(pinState, testPins.rs), "For " + funcName + ", RegisterSelect needs to be clear (Command)");
 	expect(!isPinSet(pinState, testPins.rw), "For " + funcName + ", ReadWrite needs to be clear (Write)");
-	expect(extractData(pinState, *testPins.data) == value, "For " + funcName + ", the data bus must be " + representation);
+	expect(extractData(pinState) == value, "For " + funcName + ", the data bus must be " + representation);
 	pinLog.pop();
 }
 
-void checkWriteData(const string& funcName, queue<unsigned long long>& pinLog, char value, const string& representation) {
+void checkWriteData(const string& funcName, queue<unsigned short>& pinLog, char value, const string& representation) {
 	if (pinLog.empty()) {
 		fail("There are no remaining commands to run " + funcName);
 		return;
 	}
 
-	unsigned long long pinState = pinLog.front();
+	unsigned short pinState = pinLog.front();
 	expect(!isPinSet(pinState, testPins.e), "Execution needs to be low when setting command pins for " + funcName);
 	expect(isPinSet(pinState, testPins.rs), "For " + funcName + ", RegisterSelect needs to be set (Data)");
 	expect(!isPinSet(pinState, testPins.rw), "For " + funcName + ", ReadWrite needs to be clear (Write)");
-	expect(extractData(pinState, *testPins.data) == value, "For " + funcName + ", the data bus must be " + representation);
+	expect(extractData(pinState) == value, "For " + funcName + ", the data bus must be " + representation);
 	pinLog.pop();
 }
 
 
-void checkExecutionRise(const string& funcName, queue<unsigned long long>& pinLog) {
+void checkExecutionRise(const string& funcName, queue<unsigned short>& pinLog) {
 	if (pinLog.empty()) {
 		fail("There are no remaining commands to check Execution Rise for " + funcName);
 		return;
 	}
 
-	unsigned long long pinState = pinLog.front();
+	unsigned short pinState = pinLog.front();
 	expect(isPinSet(pinState, testPins.e), "After configuring the bus for " + funcName + ", Execution needs to rise");
 	pinLog.pop();
 }
 
-void checkExecutionFall(const string& funcName, queue<unsigned long long>& pinLog) {
+void checkExecutionFall(const string& funcName, queue<unsigned short>& pinLog) {
 	if (pinLog.empty()) {
 		fail("There are no remaining commands to check Execution Fall for " + funcName);
 		return;
 	}
 
-	unsigned long long pinState = pinLog.front();
+	unsigned short pinState = pinLog.front();
 	expect(!isPinSet(pinState, testPins.e), "Execution hasn't fallen for " + funcName);
 	pinLog.pop();
 }
 
-void checkBusyFlag(const string& funcName, queue<unsigned long long>& pinLog) {
+void checkBusyFlag(const string& funcName, queue<unsigned short>& pinLog) {
 	if (pinLog.empty()) {
 		fail("There are no remaining commands to check busy flag for " + funcName);
 		return;
 	}
 
-	unsigned long long pinState = pinLog.front();
+	unsigned short pinState = pinLog.front();
 	expect(!isPinSet(pinState, testPins.e), "Execution needs to be low when setting up a status read");
 	expect(!isPinSet(pinState, testPins.rs), "To check busy flag, RegisterSelect needs to be clear (Command)");
 	expect(isPinSet(pinState, testPins.rw), "To check busy flag, ReadWrite needs to be set (Read)");
 	pinLog.pop();
 }
 
-void checkCleanState(const string& funcName, queue<unsigned long long>& pinLog) {
+void checkDelay(const string& funcName, queue<unsigned short>& pinLog, int expectedDelay, const string& delayText) {
+	constexpr int delayFakeCommandFlag = 0x40;
+	unsigned short pinState = pinLog.front();
+	int delay = extractData(pinState) - delayFakeCommandFlag;
+	expect(delay < delayFakeCommandFlag, "The delay in " + funcName + " is invalid");
+	expect(delay >= expectedDelay, "The delay in " + funcName + " needs to wait for at least " + delayText + "ms");
+	pinLog.pop();
+}
+
+void checkCleanState(const string& funcName, queue<unsigned short>& pinLog) {
 	expect(pinLog.empty(), funcName + " should've been done by now, there is no need to execute further commands");
 }
 

@@ -3,7 +3,7 @@
 ###############################################
 
 test_lib_headers := -Itest/library -Itest/doubles
-test_lib_sources := test/library/Arduino.cpp test/library/test.cpp test/library/Tests.cpp
+test_lib_sources := test/library/test.cpp test/library/Tests.cpp
 
 ###############################################
 #                Definitions                  #
@@ -18,7 +18,7 @@ COMPILE_FOR_TESTS = $(CC) $(CFLAGS) $(TEST_FLAGS) $(test_lib_headers) $(headers)
 ###############################################
 
 test_display_adapter:
-	$(COMPILE_FOR_TESTS) test/Display/AdapterTests.cpp src/Display/Adapter.cpp -o test_display_adapter
+	$(COMPILE_FOR_TESTS) test/doubles/Arduino.mock.cpp test/Display/AdapterTests.cpp src/Display/Adapter.cpp -o test_display_adapter
 	./test_display_adapter
 
 test_display_device:

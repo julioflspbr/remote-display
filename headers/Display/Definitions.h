@@ -1,8 +1,6 @@
 #ifndef DISPLAY_DEFINITIONS_H
 #define DISPLAY_DEFINITIONS_H
 
-#define BYTE_SIZE 8
-
 namespace Display {
 	typedef char					Byte;
 	typedef int						Pin;
@@ -44,11 +42,14 @@ namespace Display {
 	};
 
 	namespace Adapter {
+		enum class Port {
+			A, B, C, D, E, F, G, H, J, K, L
+		};
+
 		struct Pins {
 			Pin rs;
 			Pin rw;
 			Pin e;
-			Pin data[BYTE_SIZE];
 		};
 
 		enum class Command {

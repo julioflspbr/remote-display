@@ -3,6 +3,50 @@
 
 using namespace std;
 
+unsigned char PINA;
+unsigned char PORTA;
+unsigned char DDRA;
+
+unsigned char PINB;
+unsigned char PORTB;
+unsigned char DDRB;
+
+unsigned char PINC;
+unsigned char PORTC;
+unsigned char DDRC;
+
+unsigned char PIND;
+unsigned char PORTD;
+unsigned char DDRD;
+
+unsigned char PINE;
+unsigned char PORTE;
+unsigned char DDRE;
+
+unsigned char PINF;
+unsigned char PORTF;
+unsigned char DDRF;
+
+unsigned char PING;
+unsigned char PORTG;
+unsigned char DDRG;
+
+unsigned char PINH;
+unsigned char PORTH;
+unsigned char DDRH;
+
+unsigned char PINJ;
+unsigned char PORTJ;
+unsigned char DDRJ;
+
+unsigned char PINK;
+unsigned char PORTK;
+unsigned char DDRK;
+
+unsigned char PINL;
+unsigned char PORTL;
+unsigned char DDRL;
+
 struct Pin {
 	int mode;
 	int value;

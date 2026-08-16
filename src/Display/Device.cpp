@@ -11,64 +11,51 @@ static constexpr int CHAR = 1;
 static constexpr short MAX_ROWS = 2;
 static constexpr short MAX_CHARS = 16;
 
-inline void wait(struct Adapter::Adapter& adapter);
+template<typename A> Device<A>::Device(A& adapter) : _adapter(adapter) {
+};
 
-Device::Device(struct Adapter::Adapter& adapter) : _adapter(adapter) {
+template<typename A> void Device<A>::begin() {
 	Parameters p;
-	p.functionSet = { FunctionSet::DataLength::EightBits, FunctionSet::Lines::TwoLines, FunctionSet::FontSize::EightPixels };
+	p.functionSet = { FunctionSet::DataLength::EightBits, FunctionSet::Lines::OneLine, FunctionSet::FontSize::EightPixels };
 
 	// initialisation protocol according to the data sheet
 
 	_adapter.sleep(20);
+	_adapter.setReadyToExecute(false);
 	_adapter.setRegisterSelect(RegisterSelect::Command);
 	_adapter.setReadWrite(ReadWrite::Write);
-	_adapter.setReadyToExecute(false);
 	_adapter.setCommand(Command::FunctionSet, p);
 	_adapter.setReadyToExecute(true);
 	_adapter.sleep(5);
 	_adapter.setReadyToExecute(false);
 	_adapter.setCommand(Command::FunctionSet, p);
 	_adapter.setReadyToExecute(true);
+	_adapter.sleep(1);
 	_adapter.setReadyToExecute(false);
 	_adapter.setCommand(Command::FunctionSet, p);
 	_adapter.setReadyToExecute(true);
-	wait(_adapter);
 
 	// set 8 bits, two lines, font size 8 pixels
-	_adapter.setRegisterSelect(RegisterSelect::Command);
-	_adapter.setReadWrite(ReadWrite::Write);
+	p.functionSet = { FunctionSet::DataLength::EightBits, FunctionSet::Lines::TwoLines, FunctionSet::FontSize::EightPixels };
 	_adapter.setReadyToExecute(false);
 	_adapter.setCommand(Command::FunctionSet, p);
 	_adapter.setReadyToExecute(true);
-	wait(_adapter);
 
 	// set display off, cursor invisible, cursor not blink
-	p.displayControl = { false, false, false };
-	_adapter.setRegisterSelect(RegisterSelect::Command);
-	_adapter.setReadWrite(ReadWrite::Write);
-	_adapter.setReadyToExecute(false);
-	_adapter.setCommand(Command::DisplayControl, p);
-	_adapter.setReadyToExecute(true);
-	wait(_adapter);
-
-	// clear any mess left by the initialisation
+	this->setDisplayOn(false);
 	this->clear();
-
-	// automatically increment the memory address by one when writing a character
 	this->setEntryMode(CursorDirection::Increment);
-
-	// ready to show the display
 	this->setDisplayOn(true);
 }
 
-void Device::write(const char* text) {
+template<typename A> void Device<A>::write(const char* text) {
 	if (_cursor[ROW] >= MAX_ROWS) {
 		return;
 	}
 
 	char current;
 	while ((current = *(text++))) {
-		if (current == '\n') {
+		if (current == '\n' || current == '\r') {
 			this->breakLine();
 			continue;
 		}
@@ -88,11 +75,11 @@ void Device::write(const char* text) {
 		_adapter.setReadyToExecute(true);
 
 		_cursor[CHAR] += 1;
-		wait(_adapter);
+		this->wait();
 	}
 }
 
-void Device::breakLine() {
+template<typename A> void Device<A>::breakLine() {
 	if (_cursor[ROW] > 0) {
 		return;
 	}
@@ -108,10 +95,10 @@ void Device::breakLine() {
 
 	_cursor[ROW] += 1;
 	_cursor[CHAR] = 0;
-	wait(_adapter);
+	this->wait();
 }
 
-void Device::clear() {
+template<typename A> void Device<A>::clear() {
 	Parameters p;
 
 	_adapter.setReadyToExecute(false);
@@ -122,10 +109,10 @@ void Device::clear() {
 
 	_cursor[ROW] = 0;
 	_cursor[CHAR] = 0;
-	wait(_adapter);
+	this->wait();
 }
 
-void Device::setEntryMode(CursorDirection direction) {
+template<typename A> void Device<A>::setEntryMode(CursorDirection direction) {
 	Parameters p;
 	p.entryMode = { direction, false };
 
@@ -135,10 +122,10 @@ void Device::setEntryMode(CursorDirection direction) {
 	_adapter.setCommand(Command::EntryMode, p);
 	_adapter.setReadyToExecute(true);
 
-	wait(_adapter);
+	this->wait();
 }
 
-void Device::setDisplayOn(bool isOn) {
+template<typename A> void Device<A>::setDisplayOn(bool isOn) {
 	Parameters p;
 	p.displayControl = { isOn, _isCursorVisible, _isCursorBlinking };
 
@@ -149,10 +136,10 @@ void Device::setDisplayOn(bool isOn) {
 	_adapter.setReadyToExecute(true);
 
 	_isDisplayOn = isOn;
-	wait(_adapter);
+	this->wait();
 }
 
-void Device::setCursorVisible(bool isVisible) {
+template<typename A> void Device<A>::setCursorVisible(bool isVisible) {
 	Parameters p;
 	p.displayControl = { _isDisplayOn, isVisible, _isCursorBlinking };
 
@@ -163,10 +150,10 @@ void Device::setCursorVisible(bool isVisible) {
 	_adapter.setReadyToExecute(true);
 
 	_isCursorVisible = isVisible;
-	wait(_adapter);
+	this->wait();
 }
 
-void Device::setCursorBlinking(bool isBlinking) {
+template<typename A> void Device<A>::setCursorBlinking(bool isBlinking) {
 	Parameters p;
 	p.displayControl = { _isDisplayOn, _isCursorVisible, isBlinking };
 
@@ -177,19 +164,31 @@ void Device::setCursorBlinking(bool isBlinking) {
 	_adapter.setReadyToExecute(true);
 
 	_isCursorBlinking = isBlinking;
-	wait(_adapter);
+	this->wait();
 }
 
-void wait(struct Adapter::Adapter& adapter) {
-	adapter.setReadyToExecute(false);
-	adapter.setRegisterSelect(RegisterSelect::Command);
-	adapter.setReadWrite(ReadWrite::Read);
+template<typename A> void Device<A>::wait() {
+	bool isBusy;
 
-	bool isBusy = true;
-	while (isBusy) {
-		adapter.setReadyToExecute(true);
-		isBusy = adapter.isBusy();
-		adapter.setReadyToExecute(false);
-	}
+	do {
+		_adapter.setReadyToExecute(false);
+		_adapter.setRegisterSelect(RegisterSelect::Command);
+		_adapter.setReadWrite(ReadWrite::Read);
+		_adapter.setReadyToExecute(true);
+		isBusy = _adapter.isBusy();
+	} while (isBusy);
+
+	_adapter.setReadyToExecute(false);
 }
 
+template class Display::Device<Adapter::Adapter<Adapter::Port::A>>;
+template class Display::Device<Adapter::Adapter<Adapter::Port::B>>;
+template class Display::Device<Adapter::Adapter<Adapter::Port::C>>;
+template class Display::Device<Adapter::Adapter<Adapter::Port::D>>;
+template class Display::Device<Adapter::Adapter<Adapter::Port::E>>;
+template class Display::Device<Adapter::Adapter<Adapter::Port::F>>;
+template class Display::Device<Adapter::Adapter<Adapter::Port::G>>;
+template class Display::Device<Adapter::Adapter<Adapter::Port::H>>;
+template class Display::Device<Adapter::Adapter<Adapter::Port::J>>;
+template class Display::Device<Adapter::Adapter<Adapter::Port::K>>;
+template class Display::Device<Adapter::Adapter<Adapter::Port::L>>;

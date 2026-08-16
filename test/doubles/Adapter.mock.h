@@ -6,9 +6,12 @@
 
 namespace Display {
 	namespace Adapter {
+		template<Port P>
 		struct Adapter {
-			Adapter(const Pins&);
+			// do not use pin number higher than 8 in tests, so that it fits inside pinState
+			Adapter(const struct Pins&);
 
+			// mock
 			void sleep(int milliseconds);
 			void setRegisterSelect(RegisterSelect);
 			void setReadWrite(ReadWrite);
@@ -19,16 +22,15 @@ namespace Display {
 			bool isBusy(void) const;
 
 			// spy
-			std::queue<unsigned long long> flushLog(void);
-			int delay(std::queue<unsigned long long>& pinLog);
+			std::queue<unsigned short> flushLog(void);
 			void setBusyCount(int);
 
 		private:
-			Pins _pins;
+			const struct Pins _pins;
 			int _busyCount = 0;
 			bool _isEnabled = false;
-			unsigned long long _pinState = 0;
-			std::queue<unsigned long long> _pinLog;
+			unsigned short _pinState = 0; // MSB pins, LSB data bus
+			std::queue<unsigned short> _pinLog;
 		};
 	}
 }
