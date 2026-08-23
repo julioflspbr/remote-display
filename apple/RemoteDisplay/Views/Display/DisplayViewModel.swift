@@ -18,6 +18,7 @@ final class DisplayViewModel {
 
 	func setText(_ text: String) {
 		self.positions = []
+		self.display = Display()
 		self.text = self.fillUpDisplay(text: text)
 	}
 
