@@ -1,5 +1,21 @@
+# general
 .DS_Store
+
+# iOS
 *.dSYM/
 *.swp
 xcuserdata/
 run_tests
+
+# android
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+build/
+*/build/
+captures/
+.externalNativeBuild/
+.cxx/
+local.properties
