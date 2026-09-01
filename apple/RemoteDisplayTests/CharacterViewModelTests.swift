@@ -9,23 +9,38 @@ import Testing
 import Foundation
 @testable import RemoteDisplay
 
-@Suite
+@Suite @MainActor
 struct CharacterViewModelTests {
 	@Test
 	func characterBlink() async throws {
 		// given
-		let viewModel = await CharacterViewModel(blinkInterval: 0.05)
+		let sut = CharacterViewModel(blinkInterval: 0.05)
 
 		// when
-		await viewModel.blink()
+		sut.blink()
 
 		// then
-		#expect(viewModel.showCursor, "Blinking should start with cursor visible")
+		try await Task.sleep(for: .milliseconds(10)) // just puth the blinker and tests out of phase
+		#expect(sut.showCursor, "Blinking should start with cursor visible")
 
 		try await Task.sleep(for: .milliseconds(50))
-		#expect(!viewModel.showCursor, "Blinking should hide cursor after the defined blink interval")
+		#expect(!sut.showCursor, "Blinking should hide cursor after the defined blink interval")
 
 		try await Task.sleep(for: .milliseconds(50))
-		#expect(viewModel.showCursor, "Blinking should show cursor after the defined blink interval")
+		#expect(sut.showCursor, "Blinking should show cursor after the defined blink interval")
+	}
+
+	@Test
+	func characterSteady() async throws {
+		// given
+		let sut =  CharacterViewModel(blinkInterval: 0.05)
+		sut.blink()
+
+		// when
+		sut.steady()
+
+		// then
+		try await Task.sleep(for: .milliseconds(70))
+		#expect(!sut.showCursor, "Blinking should not change when calling steady")
 	}
 }

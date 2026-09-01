@@ -8,7 +8,7 @@
 import SwiftUI
 
 @Observable
-final class CharacterViewModel {
+final class CharacterViewModel: Sendable {
 	private let blinkInterval: TimeInterval
 	private(set) var showCursor: Bool = true
 	private var blinkTimer: Timer?
@@ -22,6 +22,12 @@ final class CharacterViewModel {
 		blinkTimer = Timer.scheduledTimer(withTimeInterval: self.blinkInterval, repeats: true) { [weak self] _ in
 			self?.showCursor.toggle()
 		}
+	}
+
+	func steady() {
+		blinkTimer?.invalidate()
+		blinkTimer = nil
+		showCursor = false
 	}
 
 	deinit {

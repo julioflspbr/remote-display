@@ -20,7 +20,13 @@ struct CharacterView: View {
 			.foregroundStyle(.character)
 			.aspectRatio(5/8, contentMode: .fit)
 			.background(.characterBackground)
-			.onChange(of: cell, initial: true, manageBlinking)
+			.onChange(of: cell, initial: true) {
+				if case .cursor = cell {
+					self.viewModel.blink()
+				} else {
+					self.viewModel.steady()
+				}
+			}
 	}
 
 	var characterOrCursor: Character {
@@ -31,12 +37,6 @@ struct CharacterView: View {
 				" "
 			case .cursor:
 				self.viewModel.showCursor ? "_" : " "
-		}
-	}
-
-	private func manageBlinking() {
-		if case .cursor = cell {
-			self.viewModel.blink()
 		}
 	}
 }

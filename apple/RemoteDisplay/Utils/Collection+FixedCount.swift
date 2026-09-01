@@ -15,9 +15,7 @@ typealias Fixed<T: Collection> = FixedCount<T>
 			_wrappedValue
 		}
 		set {
-			if newValue.count != fixedCount {
-				fatalError("This property needs to contain exactly \(fixedCount) elements")
-			}
+			precondition(newValue.count == fixedCount, "This property needs to contain exactly \(fixedCount) elements")
 			_wrappedValue = newValue
 		}
 	}
