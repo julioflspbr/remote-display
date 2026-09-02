@@ -7,30 +7,37 @@
 
 import SwiftUI
 
-@Observable
-final class CharacterViewModel: Sendable {
-	private let blinkInterval: TimeInterval
-	private(set) var showCursor: Bool = true
-	private var blinkTimer: Timer?
+@Observable @MainActor
+final class CharacterViewModel {
+	private let blinkInterval: ContinuousClock.Duration
 
-	init(blinkInterval: TimeInterval = 0.5) {
+	@ObservationIgnored
+	private var blinkTask: Task<Void, any Error>?
+	private(set) var showCursor: Bool = true
+
+	init(blinkInterval: ContinuousClock.Duration = .milliseconds(500)) {
 		self.blinkInterval = blinkInterval
 	}
 
 	func blink() {
-		blinkTimer?.invalidate()
-		blinkTimer = Timer.scheduledTimer(withTimeInterval: self.blinkInterval, repeats: true) { [weak self] _ in
-			self?.showCursor.toggle()
+		self.blinkTask?.cancel()
+		self.blinkTask = Task { @MainActor [weak self] in
+			guard let self else {
+				return
+			}
+			try await Task.sleep(for: self.blinkInterval)
+			self.showCursor.toggle()
+			self.blink()
 		}
 	}
 
 	func steady() {
-		blinkTimer?.invalidate()
-		blinkTimer = nil
-		showCursor = false
+		self.blinkTask?.cancel()
+		self.blinkTask = nil
+		self.showCursor = false
 	}
 
 	deinit {
-		blinkTimer?.invalidate()
+		self.blinkTask?.cancel()
 	}
 }

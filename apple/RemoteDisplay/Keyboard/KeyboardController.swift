@@ -9,9 +9,8 @@ extension Keyboard {
 	@MainActor
 	final class Controller {
 		private var subscriptions: Set<AsyncStream<Keyboard.Action>.Continuation> = []
-		private func removeSubscription(_ subscription: AsyncStream<Keyboard.Action>.Continuation) {
-			subscriptions.remove(subscription)
-		}
+
+		static let shared = Controller()
 
 		deinit {
 			for subscription in self.subscriptions {
@@ -43,8 +42,8 @@ extension Keyboard.Controller: Keyboard.Forwarder {
 		AsyncStream<Keyboard.Action> { continuation in
 			self.subscriptions.insert(continuation)
 			continuation.onTermination = { _ in
-				Task {
-					await self.removeSubscription(continuation)
+				Task { @MainActor in
+					self.subscriptions.remove(continuation)
 				}
 			}
 		}

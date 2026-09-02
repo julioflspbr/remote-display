@@ -8,20 +8,14 @@
 import SwiftUI
 
 struct DisplayView: View {
-	@Binding var text: String
+	let text: String
 	@Bindable private var viewModel = DisplayViewModel()
 
 	var body: some View {
 		DisplayTextView(display: viewModel.display)
-			.respondToKeyboard(
-				insertText: viewModel.insertText,
-				deleteBackward: viewModel.deleteBackward
-			)
+			.respondToKeyboard()
 			.onAppear {
 				self.viewModel.setText(self.text)
-			}
-			.onChange(of: viewModel.text) {
-				self.text = self.viewModel.text
 			}
 	}
 }
@@ -51,8 +45,7 @@ private struct LineView: View {
 }
 
 #Preview {
-	@Previewable @State var text: String = "This is my\nMESSAGE TO YOU!"
-	DisplayView(text: $text)
+	DisplayView(text: "This is my\nMESSAGE TO YOU!")
 		.padding(20)
 		.background(.displayBackground)
 }
