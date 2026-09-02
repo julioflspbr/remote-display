@@ -14,7 +14,7 @@ struct CharacterViewModelTests {
 	@Test
 	func characterBlink() async throws {
 		// given
-		let sut = CharacterViewModel(blinkInterval: 0.05)
+		let sut = CharacterViewModel(blinkInterval: .milliseconds(50))
 
 		// when
 		sut.blink()
@@ -33,7 +33,7 @@ struct CharacterViewModelTests {
 	@Test
 	func characterSteady() async throws {
 		// given
-		let sut =  CharacterViewModel(blinkInterval: 0.05)
+		let sut =  CharacterViewModel(blinkInterval: .milliseconds(50))
 		sut.blink()
 
 		// when

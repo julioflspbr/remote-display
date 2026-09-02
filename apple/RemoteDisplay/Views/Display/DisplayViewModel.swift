@@ -15,9 +15,9 @@ final class DisplayViewModel {
 
 	private(set) var display = Display()
 
-	init(keyEvents: any Keyboard.Forwarder = Keyboard.Controller.shared) {
-		self.keyPressTask = Task { @MainActor in
-			for await input in keyEvents.keyboardAction {
+	init(dependencies: Dependencies) {
+		self.keyPressTask = dependencies.keyEventSubscriptionContext {
+			for await input in dependencies.keyEvents.keyboardAction {
 				switch input {
 					case .backspace:
 						self.deleteBackward()
