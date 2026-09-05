@@ -4,28 +4,48 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import java.util.Timer
-import kotlin.concurrent.timer
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
-class CharacterViewModel(val blinkInterval: Long = 500/* ms */): ViewModel() {
+class CharacterViewModel(val blinkInterval: Duration = 500.milliseconds): ViewModel() {
+    companion object {
+        fun build(): ViewModelProvider.Factory =
+            viewModelFactory {
+                initializer {
+                    CharacterViewModel()
+                }
+            }
+    }
+
     var showCursor by mutableStateOf(true)
 
-    private var blinkTimer: Timer? = null
+    private var blinkerJob: Job? = null
 
     fun blink() {
-        blinkTimer?.cancel()
-        this.blinkTimer = timer(name = "Character Blinker", initialDelay = blinkInterval, period = blinkInterval) {
-            showCursor = !showCursor
+        blinkerJob?.cancel()
+        blinkerJob = viewModelScope.launch {
+            while (isActive) {
+                delay(blinkInterval)
+                showCursor = !showCursor
+            }
         }
     }
 
     fun steady() {
-        blinkTimer?.cancel()
-        blinkTimer = null
+        blinkerJob?.cancel()
+        blinkerJob = null
         showCursor = false
     }
 
     override fun onCleared() {
-        blinkTimer?.cancel()
+        blinkerJob?.cancel()
     }
 }

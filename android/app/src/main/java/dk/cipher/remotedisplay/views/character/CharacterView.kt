@@ -21,7 +21,7 @@ import dk.cipher.remotedisplay.models.Cell
 
 @Composable
 fun CharacterView(cell: Cell, modifier: Modifier = Modifier) {
-    val viewModel: CharacterViewModel = viewModel()
+    val viewModel: CharacterViewModel = viewModel(factory = CharacterViewModel.build())
 
     SideEffect(cell is Cell.Cursor) {
         if (cell is Cell.Cursor) {
@@ -54,7 +54,7 @@ fun CharacterView(cell: Cell, modifier: Modifier = Modifier) {
 @Composable
 fun CharacterPreview() {
     CharacterView(
-        cell = Cell.Character('J'),
+        cell = Cell.Cursor,
         modifier = Modifier
             .size(50.dp, 80.dp)
             .background(color = colorResource(R.color.display_background))
