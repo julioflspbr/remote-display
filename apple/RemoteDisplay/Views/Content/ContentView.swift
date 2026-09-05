@@ -8,10 +8,8 @@
 import SwiftUI
 
 struct ContentView: View {
-	@State var text: String = "0123456789012345"
-
-    var body: some View {
-		DisplayView(text: $text)
+	var body: some View {
+		DisplayView(text: "0123456789012345")
 			.padding(20)
 			.background(.displayBackground)
     }

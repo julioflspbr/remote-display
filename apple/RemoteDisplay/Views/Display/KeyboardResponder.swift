@@ -9,34 +9,27 @@ import UIKit
 import SwiftUI
 
 extension View {
-	func respondToKeyboard(insertText: @escaping (String) -> Void, deleteBackward: @escaping () -> Void) -> some View {
-		modifier(KeyboardResponder(insertText: insertText, deleteBackward: deleteBackward))
+	func respondToKeyboard(receiver: any Keyboard.Receiver = Keyboard.Controller.shared) -> some View {
+		modifier(KeyboardResponder(receiver: receiver))
 	}
 }
 
 private struct KeyboardResponder: ViewModifier {
-	let insertText: (String) -> Void
-	let deleteBackward: () -> Void
+	private(set) weak var receiver: (any Keyboard.Receiver)?
 
 	func body(content: Content) -> some View {
 		content
 			.overlay {
-				KeyboardResponderOverlay(insertText: insertText, deleteBackward: deleteBackward)
+				KeyboardResponderOverlay(receiver: receiver)
 			}
 	}
 }
 
 private struct KeyboardResponderOverlay: UIViewRepresentable {
-	let insertText: (String) -> Void
-	let deleteBackward: () -> Void
-
-	init(insertText: @escaping (String) -> Void, deleteBackward: @escaping () -> Void) {
-		self.insertText = insertText
-		self.deleteBackward = deleteBackward
-	}
+	private(set) weak var receiver: (any Keyboard.Receiver)?
 
 	func makeUIView(context: Context) -> KeyboardResponderView {
-		KeyboardResponderView(insertText: insertText, deleteBackward: deleteBackward)
+		KeyboardResponderView(receiver: receiver)
 	}
 
 	func updateUIView(_ uiView: KeyboardResponderView, context: Context) {
@@ -48,13 +41,10 @@ private final class KeyboardResponderView: UIView, UIKeyInput {
 	let hasText = true
 	var keyboardType: UIKeyboardType = .asciiCapable
 
-	private let insertTextCallback: (String) -> Void
-	private let deleteBackwardCallback: () -> Void
+	private(set) var receiver: (any Keyboard.Receiver)?
 
-	init(insertText: @escaping (String) -> Void, deleteBackward: @escaping () -> Void) {
-		self.insertTextCallback = insertText
-		self.deleteBackwardCallback = deleteBackward
-
+	init(receiver: (any Keyboard.Receiver)?) {
+		self.receiver = receiver
 		super.init(frame: .zero)
 	}
 
@@ -81,11 +71,11 @@ private final class KeyboardResponderView: UIView, UIKeyInput {
 	}
 
 	func insertText(_ text: String) {
-		self.insertTextCallback(text)
+		self.receiver?.insertText(text)
 	}
 
 	func deleteBackward() {
-		self.deleteBackwardCallback()
+		self.receiver?.deleteBackward()
 	}
 }
 

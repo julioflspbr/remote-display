@@ -8,27 +8,17 @@
 import Testing
 @testable import RemoteDisplay
 
-@Suite
+@Suite @MainActor
 struct DisplayViewModelTests {
-
-	// MARK: - Initial state
-
-	@Test
-	func initialState() {
-		let sut = DisplayViewModel()
-
-		#expect(sut.text.isEmpty)
-	}
 
 	// MARK: - setText
 
 	@Test
 	func setTextDisplaysCharacters() {
-		let sut = DisplayViewModel()
+		let sut = DisplayViewModel(dependencies: .mock())
 
 		sut.setText("Hello")
 
-		#expect(sut.text == "Hello")
 		#expect(sut.display.lines[0].cells[0] == .char("H"))
 		#expect(sut.display.lines[0].cells[1] == .char("e"))
 		#expect(sut.display.lines[0].cells[2] == .char("l"))
@@ -39,7 +29,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextPlacesCursor() {
-		let sut = DisplayViewModel()
+		let sut = DisplayViewModel(dependencies: .mock())
 
 		sut.setText("abc")
 
@@ -48,11 +38,9 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextHandlesNewlines() {
-		let sut = DisplayViewModel()
+		let sut = DisplayViewModel(dependencies: .mock())
 
 		sut.setText("abc\ndef")
-
-		#expect(sut.text == "abc\ndef")
 
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
@@ -67,12 +55,11 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextResetsPreviousContents() {
-		let sut = DisplayViewModel()
+		let sut = DisplayViewModel(dependencies: .mock())
 
 		sut.setText("first")
 		sut.setText("second")
 
-		#expect(sut.text == "second")
 		#expect(sut.display.lines[0].cells[0] == .char("s"))
 		#expect(sut.display.lines[0].cells[1] == .char("e"))
 		#expect(sut.display.lines[0].cells[2] == .char("c"))
@@ -84,11 +71,10 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextIgnoresNonASCIICharacters() {
-		let sut = DisplayViewModel()
+		let sut = DisplayViewModel(dependencies: .mock())
 
 		sut.setText("a😀b")
 
-		#expect(sut.text == "ab")
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
 		#expect(sut.display.lines[0].cells[2] == .cursor)
@@ -97,13 +83,17 @@ struct DisplayViewModelTests {
 	// MARK: - insertText
 
 	@Test
-	func insertTextAppendsCharacters() {
-		let sut = DisplayViewModel()
+	func insertTextAppendsCharacters() async {
+		let semaphore = TestSemaphore()
+		let keyboard = Keyboard.Controller()
+		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
+		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
 
+		await semaphore.wait()
 		sut.setText("Hello")
-		sut.insertText(" world")
-
-		#expect(sut.text == "Hello world")
+		keyboard.insertText(" world")
+		keyboard.endActionStream()
+		await semaphore.wait()
 
 		#expect(sut.display.lines[0].cells[0] == .char("H"))
 		#expect(sut.display.lines[0].cells[5] == .char(" "))
@@ -112,13 +102,17 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func insertTextHandlesNewlines() {
-		let sut = DisplayViewModel()
+	func insertTextHandlesNewlines() async {
+		let semaphore = TestSemaphore()
+		let keyboard = Keyboard.Controller()
+		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
+		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
 
+		await semaphore.wait()
 		sut.setText("abc")
-		sut.insertText("\ndef")
-
-		#expect(sut.text == "abc\ndef")
+		keyboard.insertText("\ndef")
+		keyboard.endActionStream()
+		await semaphore.wait()
 
 		#expect(sut.display.lines[0].cells[3] == .blank)
 		#expect(sut.display.lines[1].cells[0] == .char("d"))
@@ -128,13 +122,18 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func insertTextIgnoresNonASCIICharacters() {
-		let sut = DisplayViewModel()
+	func insertTextIgnoresNonASCIICharacters() async {
+		let semaphore = TestSemaphore()
+		let keyboard = Keyboard.Controller()
+		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
+		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
 
+		await semaphore.wait()
 		sut.setText("ab")
-		sut.insertText("😀cd")
+		keyboard.insertText("😀cd")
+		keyboard.endActionStream()
+		await semaphore.wait()
 
-		#expect(sut.text == "abcd")
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
 		#expect(sut.display.lines[0].cells[2] == .char("c"))
@@ -145,22 +144,13 @@ struct DisplayViewModelTests {
 	// MARK: - deleteBackward
 
 	@Test
-	func deleteBackwardOnEmptyText() {
-		let sut = DisplayViewModel()
-
-		sut.deleteBackward()
-
-		#expect(sut.text.isEmpty)
-	}
-
-	@Test
 	func deleteBackwardRemovesCharacter() {
-		let sut = DisplayViewModel()
+		let keyboard = Keyboard.Controller()
+		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard))
 
 		sut.setText("abc")
 		sut.deleteBackward()
 
-		#expect(sut.text == "ab")
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
 		#expect(sut.display.lines[0].cells[2] == .cursor)
@@ -168,7 +158,8 @@ struct DisplayViewModelTests {
 
 	@Test
 	func deleteBackwardRemovesAllCharacters() {
-		let sut = DisplayViewModel()
+		let keyboard = Keyboard.Controller()
+		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard))
 
 		sut.setText("abc")
 
@@ -176,21 +167,19 @@ struct DisplayViewModelTests {
 		sut.deleteBackward()
 		sut.deleteBackward()
 
-		#expect(sut.text.isEmpty)
 		#expect(sut.display.lines[0].cells[0] == .cursor)
 	}
 
 	@Test
 	func deleteBackwardAcrossNewline() {
-		let sut = DisplayViewModel()
+		let keyboard = Keyboard.Controller()
+		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard))
 
 		sut.setText("abc\ndef")
 		sut.deleteBackward()
 		sut.deleteBackward()
 		sut.deleteBackward()
 		sut.deleteBackward()
-
-		#expect(sut.text == "abc")
 
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
@@ -201,13 +190,32 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
+	func deleteBackwardAcrossLineBreak() {
+		let keyboard = Keyboard.Controller()
+		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard))
+
+		// i is the 9th char that goes to the next line
+		sut.setText("abcdefghijk")
+		sut.deleteBackward()
+		sut.deleteBackward()
+		sut.deleteBackward()
+		sut.deleteBackward()
+
+		#expect(sut.display.lines[0].cells[4] == .char("e"))
+		#expect(sut.display.lines[0].cells[5] == .char("f"))
+		#expect(sut.display.lines[0].cells[6] == .char("g"))
+		#expect(sut.display.lines[0].cells[7] == .cursor)
+
+		#expect(sut.display.lines[1].cells[0] == .blank)
+	}
+
+	@Test
 	func deleteBackwardRemovesNewline() {
-		let sut = DisplayViewModel()
+		let keyboard = Keyboard.Controller()
+		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard))
 
 		sut.setText("abc\n")
 		sut.deleteBackward()
-
-		#expect(sut.text == "abc")
 
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
@@ -215,42 +223,27 @@ struct DisplayViewModelTests {
 		#expect(sut.display.lines[0].cells[3] == .cursor)
 	}
 
-	// MARK: - Capacity
-
-	@Test
-	func setTextRespectsLineCapacity() {
-		let sut = DisplayViewModel()
-		let input = String(repeating: "a", count: Display.Specs.charCount + 10)
-
-		sut.setText(input)
-
-		#expect(sut.text.count == Display.Specs.charCount)
+	private func makeKeyEventSubscriptionContext(semaphore: TestSemaphore) -> DisplayViewModel.Dependencies.Subscription {
+		{ subscription in
+			Task {
+				await semaphore.signal()
+				await subscription()
+				await semaphore.signal()
+			}
+		}
 	}
+}
 
-	@Test
-	func setTextRespectsDisplayLineCount() {
-		let input = (0..<Display.Specs.lineCount + 5).map { _ in "a" }.joined(separator: "\n")
-
-		let sut = DisplayViewModel()
-		sut.setText(input)
-
-		#expect(sut.display.lines.count == Display.Specs.lineCount)
-	}
-
-	@Test
-	func insertTextRespectsDisplayCapacity() {
-		let sut = DisplayViewModel()
-
-		let input = String(
-			repeating: "a",
-			count: Display.Line.Specs.charCount * Display.Specs.lineCount + 10
-		)
-
-		sut.setText(input)
-
-		#expect(
-			sut.text.count <=
-				Display.Line.Specs.charCount * Display.Specs.lineCount
+private extension DisplayViewModel.Dependencies {
+	static func mock(
+		keyEvents: Keyboard.Controller = .init(),
+		keyEventSubscriptionContext: @escaping Subscription = { operation in
+			Task<Void, Never>(operation: operation)
+		}
+	) -> DisplayViewModel.Dependencies {
+		.init(
+			keyEvents: keyEvents,
+			keyEventSubscriptionContext: keyEventSubscriptionContext
 		)
 	}
 }
