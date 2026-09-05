@@ -10,6 +10,7 @@ kotlin = "2.4.10"
 activityCompose = "1.13.0"
 lifecycleRuntimeKtx = "2.11.0"
 lifecycle = "2.11.0"
+kotlinxCoroutines = "1.11.0"
 composeBom = "2026.08.00"
 
 [libraries]
@@ -22,6 +23,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 
 # Compose BOM — pins versions for all androidx.compose.* artifacts below
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }

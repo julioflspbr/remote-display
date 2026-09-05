@@ -8,7 +8,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
@@ -18,13 +18,18 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dk.cipher.remotedisplay.R
 import dk.cipher.remotedisplay.models.Cell
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun CharacterView(cell: Cell, modifier: Modifier = Modifier) {
-    val viewModel: CharacterViewModel = viewModel()
+    val viewModel: CharacterViewModel = viewModel(factory = CharacterViewModel.build())
 
-    SideEffect(cell is Cell.Cursor) {
+    LaunchedEffect(cell is Cell.Cursor) {
         if (cell is Cell.Cursor) {
+            // .delay() hack to make cursor blink, otherwise it might
+            // interleave with .steady() when typing fast
+            delay(1.milliseconds)
             viewModel.blink()
         } else {
             viewModel.steady()
@@ -54,7 +59,7 @@ fun CharacterView(cell: Cell, modifier: Modifier = Modifier) {
 @Composable
 fun CharacterPreview() {
     CharacterView(
-        cell = Cell.Character('J'),
+        cell = Cell.Cursor,
         modifier = Modifier
             .size(50.dp, 80.dp)
             .background(color = colorResource(R.color.display_background))
