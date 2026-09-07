@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
 
         root = FocusableComposeView(this).apply {
             setContent {
-                CharacterView(Cell.Cursor)
+                DisplayView("Uh la la la", root)
             }
         }
 
