@@ -2,7 +2,7 @@ package dk.cipher.remotedisplay.keyboard
 
 import kotlinx.coroutines.channels.Channel
 
-interface Forwarder {
-    val keyboardAction: Channel<Action>
+interface KeyboardForwarder {
+    val keyboardAction: Channel<KeyboardAction>
     fun endChannel()
 }

@@ -1,7 +1,7 @@
 package dk.cipher.remotedisplay.display
 
-import dk.cipher.remotedisplay.keyboard.Controller
-import dk.cipher.remotedisplay.keyboard.Forwarder
+import dk.cipher.remotedisplay.keyboard.KeyboardController
+import dk.cipher.remotedisplay.keyboard.KeyboardForwarder
 import dk.cipher.remotedisplay.models.Cell
 import dk.cipher.remotedisplay.views.display.DisplayViewModel
 import dk.cipher.remotedisplay.views.display.DisplayViewModel.Dependencies.Subscription
@@ -86,7 +86,7 @@ class DisplayViewModelTest {
     @Test
     @OptIn(ExperimentalCoroutinesApi::class)
     fun `insertText appends characters`() = runTest {
-        val keyboard = Controller()
+        val keyboard = KeyboardController()
         val sut = DisplayViewModel(
             makeMockOfDisplayViewModelDependencies(
                 keyboard,
@@ -109,7 +109,7 @@ class DisplayViewModelTest {
     @Test
     @OptIn(ExperimentalCoroutinesApi::class)
     fun `insertText handles newlines`() = runTest {
-        val keyboard = Controller()
+        val keyboard = KeyboardController()
         val sut = DisplayViewModel(
             makeMockOfDisplayViewModelDependencies(
                 keyboard,
@@ -133,7 +133,7 @@ class DisplayViewModelTest {
     @Test
     @OptIn(ExperimentalCoroutinesApi::class)
     fun `insertText ignores non ASCII characters`() = runTest {
-        val keyboard = Controller()
+        val keyboard = KeyboardController()
         val sut = DisplayViewModel(
             makeMockOfDisplayViewModelDependencies(
                 keyboard,
@@ -157,7 +157,7 @@ class DisplayViewModelTest {
     @Test
     @OptIn(ExperimentalCoroutinesApi::class)
     fun `deleteBackward removes character`() = runTest {
-        val keyboard = Controller()
+        val keyboard = KeyboardController()
         val sut = DisplayViewModel(
             makeMockOfDisplayViewModelDependencies(
                 keyboard,
@@ -179,7 +179,7 @@ class DisplayViewModelTest {
     @Test
     @OptIn(ExperimentalCoroutinesApi::class)
     fun `deleteBackward removes all characters`() = runTest {
-        val keyboard = Controller()
+        val keyboard = KeyboardController()
         val sut = DisplayViewModel(
             makeMockOfDisplayViewModelDependencies(
                 keyboard,
@@ -201,7 +201,7 @@ class DisplayViewModelTest {
     @Test
     @OptIn(ExperimentalCoroutinesApi::class)
     fun `deleteBackward across newline`() = runTest {
-        val keyboard = Controller()
+        val keyboard = KeyboardController()
         val sut = DisplayViewModel(
             makeMockOfDisplayViewModelDependencies(
                 keyboard,
@@ -228,7 +228,7 @@ class DisplayViewModelTest {
     @Test
     @OptIn(ExperimentalCoroutinesApi::class)
     fun `deleteBackward removes newline`() = runTest {
-        val keyboard = Controller()
+        val keyboard = KeyboardController()
         val sut = DisplayViewModel(
             makeMockOfDisplayViewModelDependencies(
                 keyboard,
@@ -250,7 +250,7 @@ class DisplayViewModelTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun makeMockOfDisplayViewModelDependencies(
-        keyEvents: Forwarder = Controller(),
+        keyEvents: KeyboardForwarder = KeyboardController(),
         keyEventSubscriptionContext: Subscription = { operation ->
             CoroutineScope(UnconfinedTestDispatcher()).launch { operation() }
         }

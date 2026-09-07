@@ -2,11 +2,11 @@ package dk.cipher.remotedisplay.keyboard
 
 import kotlinx.coroutines.channels.Channel
 
-class Controller: Forwarder, Receiver {
+class KeyboardController: KeyboardForwarder, KeyboardReceiver {
     companion object {
-        val shared = Controller()
+        val shared = KeyboardController()
     }
-    private var subscriptions = mutableSetOf<Channel<Action>>()
+    private var subscriptions = mutableSetOf<Channel<KeyboardAction>>()
 
     fun finalize() {
         for (subscription in subscriptions) {
@@ -14,9 +14,9 @@ class Controller: Forwarder, Receiver {
         }
     }
 
-    override val keyboardAction: Channel<Action>
+    override val keyboardAction: Channel<KeyboardAction>
         get() {
-             val channel = Channel<Action>()
+             val channel = Channel<KeyboardAction>()
             subscriptions.add(channel)
             return channel
         }
@@ -33,13 +33,13 @@ class Controller: Forwarder, Receiver {
             return
         }
         for (subscription in subscriptions) {
-            subscription.send(Action.Text(text))
+            subscription.send(KeyboardAction.Text(text))
         }
     }
 
     override suspend fun deleteBackward() {
         for (subscription in subscriptions) {
-            subscription.send(Action.Backspace)
+            subscription.send(KeyboardAction.Backspace)
         }
     }
 }

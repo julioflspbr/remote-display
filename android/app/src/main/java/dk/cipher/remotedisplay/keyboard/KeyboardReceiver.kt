@@ -1,6 +1,6 @@
 package dk.cipher.remotedisplay.keyboard
 
-interface Receiver {
+interface KeyboardReceiver {
     suspend fun insertText(text: String)
     suspend fun deleteBackward()
 }

@@ -17,7 +17,7 @@ class KeyboardControllerTest {
     fun `test keyboard input`() = runTest {
         // given
         val semaphore = Semaphore(1)
-        val sut = Controller()
+        val sut = KeyboardController()
 
         // when
         val collector = makeCollector(sut, semaphore)
@@ -32,15 +32,15 @@ class KeyboardControllerTest {
         // then
         val result = collector.await()
         assertEquals("There were 2 valid text inputs, but the result does not contain 2 results", result.size, 2)
-        assertEquals("The first input doesn't match the output", result[0], Action.Text("ab"))
-        assertEquals("The first input doesn't match the output", result[1], Action.Text("c"))
+        assertEquals("The first input doesn't match the output", result[0], KeyboardAction.Text("ab"))
+        assertEquals("The first input doesn't match the output", result[1], KeyboardAction.Text("c"))
     }
 
     @Test
     fun `test backspace`() = runTest {
         // given
         val semaphore = Semaphore(1)
-        val sut = Controller()
+        val sut = KeyboardController()
 
         // when
         val collector = makeCollector(sut, semaphore)
@@ -55,12 +55,12 @@ class KeyboardControllerTest {
         // then
         val result = collector.await()
         assertEquals("There were 3 valid backspace inputs, but the result does not contain 3 results", result.size, 3)
-        assertTrue("Not all the inputs were backspaces", result.all { it == Action.Backspace })
+        assertTrue("Not all the inputs were backspaces", result.all { it == KeyboardAction.Backspace })
     }
 
-    private fun makeCollector(sut: Controller, semaphore: Semaphore): Deferred<List<Action>> =
+    private fun makeCollector(sut: KeyboardController, semaphore: Semaphore): Deferred<List<KeyboardAction>> =
         CoroutineScope(Dispatchers.IO).async {
-            val result = mutableListOf<Action>()
+            val result = mutableListOf<KeyboardAction>()
             semaphore.release()
             for (action in sut.keyboardAction) {
                 result.add(action)

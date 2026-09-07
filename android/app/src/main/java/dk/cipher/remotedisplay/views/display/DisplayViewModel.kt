@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import dk.cipher.remotedisplay.keyboard.Action
-import dk.cipher.remotedisplay.keyboard.Controller
-import dk.cipher.remotedisplay.keyboard.Forwarder
+import dk.cipher.remotedisplay.keyboard.KeyboardAction
+import dk.cipher.remotedisplay.keyboard.KeyboardController
+import dk.cipher.remotedisplay.keyboard.KeyboardForwarder
 import dk.cipher.remotedisplay.models.Cell
 import dk.cipher.remotedisplay.models.Display
 import dk.cipher.remotedisplay.models.Line
@@ -16,13 +16,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class DisplayViewModel(dependencies: Dependencies): ViewModel() {
-    data class Dependencies(val keyEvents: Forwarder, val keyEventSubscriptionContext: Subscription) {
+    data class Dependencies(val keyEvents: KeyboardForwarder, val keyEventSubscriptionContext: Subscription) {
         typealias Subscription = (suspend () -> Unit) -> Job
 
         companion object {
             fun live() =
                 Dependencies(
-                    keyEvents = Controller.shared,
+                    keyEvents = KeyboardController.shared,
                     keyEventSubscriptionContext = { operation ->
                         CoroutineScope(Dispatchers.Main).launch { operation() }
                     }
@@ -55,8 +55,8 @@ class DisplayViewModel(dependencies: Dependencies): ViewModel() {
         keyPressJob = dependencies.keyEventSubscriptionContext {
             for (input in dependencies.keyEvents.keyboardAction) {
                 when (input) {
-                    is Action.Text -> insertText(input.text)
-                    is Action.Backspace -> deleteBackward()
+                    is KeyboardAction.Text -> insertText(input.text)
+                    is KeyboardAction.Backspace -> deleteBackward()
                 }
             }
         }

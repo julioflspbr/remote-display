@@ -10,25 +10,25 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
-import dk.cipher.remotedisplay.keyboard.Controller
-import dk.cipher.remotedisplay.keyboard.Receiver
-import dk.cipher.remotedisplay.keyboard.Toggler
+import dk.cipher.remotedisplay.keyboard.KeyboardController
+import dk.cipher.remotedisplay.keyboard.KeyboardReceiver
+import dk.cipher.remotedisplay.keyboard.KeyboardToggler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class FocusableComposeView : Toggler, FrameLayout {
-    val keyboardController: Receiver
+class FocusableComposeView : KeyboardToggler, FrameLayout {
+    val keyboardController: KeyboardReceiver
 
     constructor(context: Context) : super(context) {
-        this.keyboardController = Controller.shared
+        this.keyboardController = KeyboardController.shared
         this.compose = ComposeView(context)
         isFocusable = true
         isFocusableInTouchMode = true
         addView(compose)
     }
 
-    constructor(context: Context, keyboardController: Receiver) : super(context) {
+    constructor(context: Context, keyboardController: KeyboardReceiver) : super(context) {
         this.keyboardController = keyboardController
         this.compose = ComposeView(context)
         isFocusable = true

@@ -1,10 +1,10 @@
 package dk.cipher.remotedisplay.keyboard
 
-interface Toggler {
+interface KeyboardToggler {
     fun toggleKeyboard()
 }
 
-object EmptyToggler: Toggler {
+object EmptyKeyboardToggler: KeyboardToggler {
     override fun toggleKeyboard() {
     }
 }
