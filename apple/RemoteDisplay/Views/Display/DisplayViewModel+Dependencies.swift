@@ -18,7 +18,7 @@ extension DisplayViewModel {
 extension DisplayViewModel.Dependencies {
 	static func live() -> Self {
 		.init(
-			keyEvents: Keyboard.Controller.shared,
+			keyEvents: App.keyboarController,
 			keyEventSubscriptionContext: { operation in
 				Task<Void, Never>(operation: operation)
 			}
