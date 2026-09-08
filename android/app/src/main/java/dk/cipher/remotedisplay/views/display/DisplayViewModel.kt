@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import dk.cipher.remotedisplay.App
 import dk.cipher.remotedisplay.keyboard.KeyboardAction
-import dk.cipher.remotedisplay.keyboard.KeyboardController
 import dk.cipher.remotedisplay.keyboard.KeyboardForwarder
 import dk.cipher.remotedisplay.models.Cell
 import dk.cipher.remotedisplay.models.Display
@@ -22,7 +22,7 @@ class DisplayViewModel(dependencies: Dependencies): ViewModel() {
         companion object {
             fun live() =
                 Dependencies(
-                    keyEvents = KeyboardController.shared,
+                    keyEvents = App.keyboardController,
                     keyEventSubscriptionContext = { operation ->
                         CoroutineScope(Dispatchers.Main).launch { operation() }
                     }
