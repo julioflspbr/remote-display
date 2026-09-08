@@ -144,12 +144,17 @@ struct DisplayViewModelTests {
 	// MARK: - deleteBackward
 
 	@Test
-	func deleteBackwardRemovesCharacter() {
+	func deleteBackwardRemovesCharacter() async {
+		let semaphore = TestSemaphore()
 		let keyboard = Keyboard.Controller()
-		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard))
+		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
+		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
 
+		await semaphore.wait()
 		sut.setText("abc")
-		sut.deleteBackward()
+		keyboard.deleteBackward()
+		keyboard.endActionStream()
+		await semaphore.wait()
 
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
@@ -157,29 +162,38 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func deleteBackwardRemovesAllCharacters() {
+	func deleteBackwardRemovesAllCharacters() async {
+		let semaphore = TestSemaphore()
 		let keyboard = Keyboard.Controller()
-		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard))
+		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
+		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
 
+		await semaphore.wait()
 		sut.setText("abc")
-
-		sut.deleteBackward()
-		sut.deleteBackward()
-		sut.deleteBackward()
+		keyboard.deleteBackward()
+		keyboard.deleteBackward()
+		keyboard.deleteBackward()
+		keyboard.endActionStream()
+		await semaphore.wait()
 
 		#expect(sut.display.lines[0].cells[0] == .cursor)
 	}
 
 	@Test
-	func deleteBackwardAcrossNewline() {
+	func deleteBackwardAcrossNewline() async {
+		let semaphore = TestSemaphore()
 		let keyboard = Keyboard.Controller()
-		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard))
+		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
+		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
 
+		await semaphore.wait()
 		sut.setText("abc\ndef")
-		sut.deleteBackward()
-		sut.deleteBackward()
-		sut.deleteBackward()
-		sut.deleteBackward()
+		keyboard.deleteBackward()
+		keyboard.deleteBackward()
+		keyboard.deleteBackward()
+		keyboard.deleteBackward()
+		keyboard.endActionStream()
+		await semaphore.wait()
 
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
@@ -190,16 +204,21 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func deleteBackwardAcrossLineBreak() {
+	func deleteBackwardAcrossLineBreak() async {
+		let semaphore = TestSemaphore()
 		let keyboard = Keyboard.Controller()
-		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard))
+		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
+		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
 
 		// i is the 9th char that goes to the next line
+		await semaphore.wait()
 		sut.setText("abcdefghijk")
-		sut.deleteBackward()
-		sut.deleteBackward()
-		sut.deleteBackward()
-		sut.deleteBackward()
+		keyboard.deleteBackward()
+		keyboard.deleteBackward()
+		keyboard.deleteBackward()
+		keyboard.deleteBackward()
+		keyboard.endActionStream()
+		await semaphore.wait()
 
 		#expect(sut.display.lines[0].cells[4] == .char("e"))
 		#expect(sut.display.lines[0].cells[5] == .char("f"))
@@ -210,12 +229,17 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func deleteBackwardRemovesNewline() {
+	func deleteBackwardRemovesNewline() async {
+		let semaphore = TestSemaphore()
 		let keyboard = Keyboard.Controller()
-		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard))
+		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
+		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
 
+		await semaphore.wait()
 		sut.setText("abc\n")
-		sut.deleteBackward()
+		keyboard.deleteBackward()
+		keyboard.endActionStream()
+		await semaphore.wait()
 
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))

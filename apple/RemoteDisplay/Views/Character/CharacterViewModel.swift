@@ -25,9 +25,10 @@ final class CharacterViewModel {
 			guard let self else {
 				return
 			}
-			try await Task.sleep(for: self.blinkInterval)
-			self.showCursor.toggle()
-			self.blink()
+			while !Task.isCancelled {
+				try await Task.sleep(for: self.blinkInterval)
+				self.showCursor.toggle()
+			}
 		}
 	}
 
