@@ -4,31 +4,44 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import dk.cipher.remotedisplay.keyboard.KeyboardAction
+import dk.cipher.remotedisplay.keyboard.KeyboardController
+import dk.cipher.remotedisplay.keyboard.KeyboardForwarder
 import dk.cipher.remotedisplay.models.Cell
 import dk.cipher.remotedisplay.models.Display
 import dk.cipher.remotedisplay.models.Line
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
-class DisplayViewModel(private val input: KeyboardManager): ViewModel() {
+class DisplayViewModel(dependencies: Dependencies): ViewModel() {
+    data class Dependencies(val keyEvents: KeyboardForwarder, val keyEventSubscriptionContext: Subscription) {
+        typealias Subscription = (suspend () -> Unit) -> Job
+
+        companion object {
+            fun live() =
+                Dependencies(
+                    keyEvents = KeyboardController.shared,
+                    keyEventSubscriptionContext = { operation ->
+                        CoroutineScope(Dispatchers.Main).launch { operation() }
+                    }
+                )
+        }
+    }
+
     companion object {
-        fun build(input: KeyboardManager): ViewModelProvider.Factory =
+        fun build(dependencies: Dependencies): ViewModelProvider.Factory =
             viewModelFactory {
                 initializer {
-                    DisplayViewModel(input)
+                    DisplayViewModel(dependencies)
                 }
             }
     }
 
-    var text = ""
-    val display = Display()
+    var display = Display()
     private val positions = mutableListOf<Int>()
-
-    private var currentLineFirstCell: Cell
-        get() {
-            return display.lines[positions.lastIndex].cells[0].value
-        }
-        set(newValue) {
-            display.lines[positions.lastIndex].cells[0].value = newValue
-        }
+    private val keyPressJob: Job
 
     private var currentCell: Cell
         get() {
@@ -39,74 +52,53 @@ class DisplayViewModel(private val input: KeyboardManager): ViewModel() {
         }
 
     init {
-        input.insertText {
-            insertText(it)
+        keyPressJob = dependencies.keyEventSubscriptionContext {
+            for (input in dependencies.keyEvents.keyboardAction) {
+                when (input) {
+                    is KeyboardAction.Text -> insertText(input.text)
+                    is KeyboardAction.Backspace -> deleteBackward()
+                }
+            }
         }
-        input.deleteBackward {
-            deleteBackward()
-        }
+    }
+
+    fun finalize() {
+        keyPressJob.cancel()
     }
 
     fun setText(text: CharSequence) {
         positions.clear()
-        this.text = fillUpDisplay(text)
+        display = Display()
+        insertText(text)
     }
 
-    fun toggleKeyboard() {
-        if (input.isShowingKeyboard()) {
-            input.hideKeyboard()
-        } else {
-            input.showKeyboard()
-        }
-    }
-
-    fun insertText(text: CharSequence): Boolean {
-        val toAppend = fillUpDisplay(text)
-        if (toAppend.isEmpty()) {
-            return false
-        }
-        this.text += toAppend
-        return true
-    }
-
-    fun deleteBackward(): Boolean {
-        if (text.isEmpty()) {
-            return false
+    private fun deleteBackward() {
+        if (positions.isEmpty() || positions.first() <= 0) {
+            return
         }
 
-        val c = text.last()
-        text = text.removeSuffix("$c")
-
-        if (c.isNewLine()) {
-            currentLineFirstCell = Cell.Blank
+        if (positions.last() < Line.Specs.charCount) {
+            currentCell = Cell.Blank
+        }
+        positions[positions.lastIndex] -= 1
+        if (positions.last() < 0) {
             positions.removeAt(positions.lastIndex)
-        } else {
-            if (positions.last() < Line.Specs.charCount) {
-                currentCell = Cell.Blank
-            }
-            positions[positions.lastIndex] -= 1
-            if (positions.last() < 0) {
-                positions.removeAt(positions.lastIndex)
-                positions[positions.lastIndex] -= 1
+            if (positions.last() >= Line.Specs.charCount) {
+                positions[positions.lastIndex] = Line.Specs.charCount - 1
             }
         }
         if (positions.lastIndex < Display.Specs.lineCount && positions.last() < Line.Specs.charCount) {
             currentCell = Cell.Cursor
         }
-
-        return true
     }
 
-    private fun fillUpDisplay(text: CharSequence): String {
+    private fun insertText(text: CharSequence) {
         if (positions.isEmpty()) {
             positions.add(0)
         }
-        var result = ""
-        for (charCode in text.chars()) {
-            val c = Char(charCode)
+        for (c in text) {
             if (c.isNewLine()) {
-                if (positions.count() < Display.Specs.lineCount) {
-                    result += c
+                if (positions.size < Display.Specs.lineCount && positions.last() > 0) {
                     currentCell = Cell.Blank
                     positions.add(0)
                 }
@@ -114,7 +106,6 @@ class DisplayViewModel(private val input: KeyboardManager): ViewModel() {
                 if (positions.lastIndex >= Display.Specs.lineCount || positions.last() >= Line.Specs.charCount) {
                     break
                 }
-                result += c
                 currentCell = Cell.Character(c)
                 positions[positions.lastIndex] += 1
                 if (positions.last() >= Line.Specs.charCount && positions.size < Display.Specs.lineCount) {
@@ -125,8 +116,6 @@ class DisplayViewModel(private val input: KeyboardManager): ViewModel() {
         if (positions.lastIndex < Display.Specs.lineCount && positions.last() < Line.Specs.charCount) {
             currentCell = Cell.Cursor
         }
-
-        return result
     }
 }
 

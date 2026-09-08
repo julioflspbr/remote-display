@@ -7,28 +7,40 @@ import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
-import android.view.inputmethod.TextAttribute
 import android.widget.FrameLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
-import dk.cipher.remotedisplay.views.display.KeyboardManager
+import dk.cipher.remotedisplay.keyboard.KeyboardController
+import dk.cipher.remotedisplay.keyboard.KeyboardReceiver
+import dk.cipher.remotedisplay.keyboard.KeyboardToggler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-class FocusableComposeView(context: Context): KeyboardManager, FrameLayout(context) {
-    private val compose = ComposeView(context)
-    private var insertTextHandler: ((CharSequence) -> Boolean)? = null
-    private var deleteBackwardHandler: (() -> Boolean)? = null
-    private var isShowingKeyboard = false
+class FocusableComposeView : KeyboardToggler, FrameLayout {
+    val keyboardController: KeyboardReceiver
 
-
-    init {
+    constructor(context: Context) : super(context) {
+        this.keyboardController = KeyboardController.shared
+        this.compose = ComposeView(context)
         isFocusable = true
         isFocusableInTouchMode = true
         addView(compose)
     }
 
-    fun setContent(content: @Composable () -> Unit) {
-        compose.setContent(content)
+    constructor(context: Context, keyboardController: KeyboardReceiver) : super(context) {
+        this.keyboardController = keyboardController
+        this.compose = ComposeView(context)
+        isFocusable = true
+        isFocusableInTouchMode = true
+        addView(compose)
     }
+
+    private val compose: ComposeView
+    private var isShowingKeyboard = false
+
+    fun setContent(content: @Composable () -> Unit) =
+        compose.setContent(content)
 
     override fun onCheckIsTextEditor(): Boolean = true
 
@@ -39,16 +51,18 @@ class FocusableComposeView(context: Context): KeyboardManager, FrameLayout(conte
             override fun sendKeyEvent(event: KeyEvent): Boolean {
                 if (event.action == KeyEvent.ACTION_DOWN) {
                     if (event.keyCode == KeyEvent.KEYCODE_DEL) {
-                        deleteBackwardHandler?.invoke() ?: super.sendKeyEvent(event)
-                    }
-                    if (event.keyCode == KeyEvent.KEYCODE_ENTER) {
-                        hideKeyboard()
+                        CoroutineScope(Dispatchers.IO).launch {
+                            keyboardController.deleteBackward()
+                        }
                         return true
                     }
                     val unicode = event.getUnicodeChar(event.metaState)
                     if (unicode != 0) {
-                        val char = unicode.toChar()
-                        return insertTextHandler?.invoke("$char") ?: super.sendKeyEvent(event)
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val char = unicode.toChar()
+                            keyboardController.insertText(char.toString())
+                        }
+                        return true
                     }
                 }
                 return super.sendKeyEvent(event)
@@ -56,26 +70,24 @@ class FocusableComposeView(context: Context): KeyboardManager, FrameLayout(conte
         }
     }
 
-    override fun showKeyboard() {
+    private fun showKeyboard() {
         requestFocus()
         val input = context.getSystemService(InputMethodManager::class.java)
         input.showSoftInput(this, 0)
         isShowingKeyboard = true
     }
 
-    override fun hideKeyboard() {
+    private fun hideKeyboard() {
         val input = context.getSystemService(InputMethodManager::class.java)
         input.hideSoftInputFromWindow(windowToken, 0)
         isShowingKeyboard = false
     }
 
-    override fun isShowingKeyboard(): Boolean = isShowingKeyboard
-
-    override fun insertText(handler: (CharSequence) -> Boolean) {
-        insertTextHandler = handler
-    }
-
-    override fun deleteBackward(handler: () -> Boolean) {
-        deleteBackwardHandler = handler
+    override fun toggleKeyboard() {
+        if (isShowingKeyboard) {
+            hideKeyboard()
+        } else {
+            showKeyboard()
+        }
     }
 }
