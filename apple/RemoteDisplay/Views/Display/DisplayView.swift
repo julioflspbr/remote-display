@@ -9,7 +9,7 @@ import SwiftUI
 
 struct DisplayView: View {
 	let text: String
-	@State private var viewModel = DisplayViewModel(dependencies: .live())
+	@State private var viewModel = DisplayViewModel()
 
 	var body: some View {
 		DisplayTextView(display: viewModel.display)
