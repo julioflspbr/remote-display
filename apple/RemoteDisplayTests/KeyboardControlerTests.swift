@@ -11,22 +11,15 @@ import Testing
 @Suite
 struct KeyboardControllerTests {
 	@Test
-	func testKeyboardInput() async throws {
+	func testKeyboardInput() async {
 		// given
+		let semaphore = TestSemaphore()
 		let sut = Keyboard.Controller()
 
 		// when
-		let collector = Task {
-			var result = [Keyboard.Action]()
-			for await input in await sut.keyboardAction {
-				result.append(input)
-			}
-			return result
-		}
+		let collector = self.makeCollector(sut: sut, semaphore: semaphore)
 
-		// just to guarantee task execution order
-		try await Task.sleep(for: .milliseconds(5))
-
+		await semaphore.wait()
 		Task {
 			await sut.insertText("ab")
 			await sut.insertText("c")
@@ -36,27 +29,20 @@ struct KeyboardControllerTests {
 		// then
 		let result = await collector.value
 		#expect(result.count == 2, "There were 2 valid text inputs, but the result does not contain 2 results")
-		#expect(result[0].containedText == "ab", "The first input doesn't match the ouptut")
-		#expect(result[1].containedText == "c", "The first input doesn't match the ouptut")
+		#expect(result[0].containedText == "ab", "The first input doesn't match the output")
+		#expect(result[1].containedText == "c", "The first input doesn't match the output")
 	}
 
 	@Test
-	func testBackspaces() async throws {
+	func testBackspaces() async {
 		// given
+		let semaphore = TestSemaphore()
 		let sut = Keyboard.Controller()
 
 		// when
-		let collector = Task {
-			var result = [Keyboard.Action]()
-			for await input in await sut.keyboardAction {
-				result.append(input)
-			}
-			return result
-		}
+		let collector = self.makeCollector(sut: sut, semaphore: semaphore)
 
-		// just to guarantee task execution order
-		try await Task.sleep(for: .milliseconds(5))
-
+		await semaphore.wait()
 		Task {
 			await sut.deleteBackward()
 			await sut.deleteBackward()
@@ -68,6 +54,17 @@ struct KeyboardControllerTests {
 		let result = await collector.value
 		#expect(result.count == 3, "There were 3 valid backspace inputs, but the result does not contain 3 results")
 		#expect(result.allSatisfy({ it in it.isBackspace }), "Not all the inputs were backspaces")
+	}
+
+	func makeCollector(sut: Keyboard.Controller, semaphore: TestSemaphore) -> Task<[Keyboard.Action], Never> {
+		Task {
+			var result = [Keyboard.Action]()
+			await semaphore.signal()
+			for await input in await sut.keyboardAction {
+				result.append(input)
+			}
+			return result
+		}
 	}
 }
 

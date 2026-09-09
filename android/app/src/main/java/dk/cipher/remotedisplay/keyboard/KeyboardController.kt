@@ -3,9 +3,6 @@ package dk.cipher.remotedisplay.keyboard
 import kotlinx.coroutines.channels.Channel
 
 class KeyboardController: KeyboardForwarder, KeyboardReceiver {
-    companion object {
-        val shared = KeyboardController()
-    }
     private var subscriptions = mutableSetOf<Channel<KeyboardAction>>()
 
     fun finalize() {

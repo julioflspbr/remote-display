@@ -10,8 +10,6 @@ extension Keyboard {
 	final class Controller {
 		private var subscriptions: Set<AsyncStream<Keyboard.Action>.Continuation> = []
 
-		static let shared = Controller()
-
 		deinit {
 			for subscription in self.subscriptions {
 				subscription.finish()
