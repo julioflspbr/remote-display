@@ -1,42 +1,60 @@
 package dk.cipher.remotedisplay.keyboard
 
-import kotlinx.coroutines.channels.Channel
+import dk.cipher.remotedisplay.keyboard.Keyboard.Action
 
-class KeyboardController: KeyboardForwarder, KeyboardReceiver {
-    private var subscriptions = mutableSetOf<Channel<KeyboardAction>>()
+class KeyboardController : Keyboard.Controller {
+    private var service: Keyboard.Service? = null
+    private var subscriptions = mutableSetOf<Keyboard.Client>()
+    private var isShowingKeyboard = false
+    private var _canShowKeyboard = false
+    override var canShowKeyboard: Boolean
+        get() = _canShowKeyboard
+        set(value) {
+            _canShowKeyboard = value
+            if (!_canShowKeyboard) {
+                this.service?.hideKeyboard()
+                this.isShowingKeyboard = false
+            }
+        }
 
-    fun finalize() {
-        for (subscription in subscriptions) {
-            subscription.close()
+    override fun toggleKeyboard() {
+        val service = this.service
+        if (service == null || !this.canShowKeyboard) {
+            return
+        }
+        if (this.isShowingKeyboard) {
+            service.hideKeyboard()
+            this.isShowingKeyboard = false
+        } else {
+            service.showKeyboard()
+            this.isShowingKeyboard = true
         }
     }
 
-    override val keyboardAction: Channel<KeyboardAction>
-        get() {
-             val channel = Channel<KeyboardAction>()
-            subscriptions.add(channel)
-            return channel
-        }
-
-    override fun endChannel() {
-        for (subscription in subscriptions) {
-            subscription.close()
-        }
-        subscriptions.clear()
+    override fun setService(service: Keyboard.Service) {
+        this.service = service
     }
 
-    override suspend fun insertText(text: String) {
+    override fun subscribe(client: Keyboard.Client) {
+        this.subscriptions.add(client)
+    }
+
+    override fun unsubscribe(client: Keyboard.Client) {
+        this.subscriptions.remove(client)
+    }
+
+    override fun insertText(text: String) {
         if (text.isEmpty()) {
             return
         }
-        for (subscription in subscriptions) {
-            subscription.send(KeyboardAction.Text(text))
+        for (client in this.subscriptions) {
+            client.receive(Action.Text(text))
         }
     }
 
-    override suspend fun deleteBackward() {
-        for (subscription in subscriptions) {
-            subscription.send(KeyboardAction.Backspace)
+    override fun deleteBackward() {
+        for (client in this.subscriptions) {
+            client.receive(Action.Backspace)
         }
     }
 }
