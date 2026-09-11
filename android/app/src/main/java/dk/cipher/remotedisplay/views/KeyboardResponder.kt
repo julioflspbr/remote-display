@@ -11,23 +11,22 @@ import android.widget.FrameLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
 import dk.cipher.remotedisplay.App
-import dk.cipher.remotedisplay.keyboard.KeyboardReceiver
-import dk.cipher.remotedisplay.keyboard.KeyboardToggler
+import dk.cipher.remotedisplay.keyboard.Keyboard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class FocusableComposeView : KeyboardToggler, FrameLayout {
+class KeyboardResponder : Keyboard.Service, FrameLayout {
     constructor(context: Context) : super(context) {
         this.compose = ComposeView(context)
-        isFocusable = true
-        isFocusableInTouchMode = true
-        addView(compose)
+        this.isFocusable = true
+        this.isFocusableInTouchMode = true
+        this.keyboardController = App.keyboardController
+        this.addView(this.compose)
     }
 
-    private val keyboardController: KeyboardReceiver = App.keyboardController
+    private val keyboardController: Keyboard.Controller
     private val compose: ComposeView
-    private var isShowingKeyboard = false
 
     fun setContent(content: @Composable () -> Unit) =
         compose.setContent(content)
@@ -60,24 +59,14 @@ class FocusableComposeView : KeyboardToggler, FrameLayout {
         }
     }
 
-    private fun showKeyboard() {
+    override fun showKeyboard() {
         requestFocus()
         val input = context.getSystemService(InputMethodManager::class.java)
         input.showSoftInput(this, 0)
-        isShowingKeyboard = true
     }
 
-    private fun hideKeyboard() {
+    override fun hideKeyboard() {
         val input = context.getSystemService(InputMethodManager::class.java)
         input.hideSoftInputFromWindow(windowToken, 0)
-        isShowingKeyboard = false
-    }
-
-    override fun toggleKeyboard() {
-        if (isShowingKeyboard) {
-            hideKeyboard()
-        } else {
-            showKeyboard()
-        }
     }
 }

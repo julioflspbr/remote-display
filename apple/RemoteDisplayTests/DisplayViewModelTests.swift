@@ -6,6 +6,7 @@
 //
 
 import Testing
+import Foundation
 @testable import RemoteDisplay
 
 @Suite @MainActor
@@ -15,7 +16,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextDisplaysCharacters() {
-		let sut = DisplayViewModel(dependencies: .mock())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
 
 		sut.setText("Hello")
 
@@ -29,7 +30,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextPlacesCursor() {
-		let sut = DisplayViewModel(dependencies: .mock())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
 
 		sut.setText("abc")
 
@@ -38,7 +39,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextHandlesNewlines() {
-		let sut = DisplayViewModel(dependencies: .mock())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
 
 		sut.setText("abc\ndef")
 
@@ -55,7 +56,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextResetsPreviousContents() {
-		let sut = DisplayViewModel(dependencies: .mock())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
 
 		sut.setText("first")
 		sut.setText("second")
@@ -71,7 +72,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextIgnoresNonASCIICharacters() {
-		let sut = DisplayViewModel(dependencies: .mock())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
 
 		sut.setText("a😀b")
 
@@ -83,17 +84,11 @@ struct DisplayViewModelTests {
 	// MARK: - insertText
 
 	@Test
-	func insertTextAppendsCharacters() async {
-		let semaphore = TestSemaphore()
-		let keyboard = Keyboard.Controller()
-		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
-		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
+	func insertTextAppendsCharacters() {
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
 
-		await semaphore.wait()
 		sut.setText("Hello")
-		keyboard.insertText(" world")
-		keyboard.endActionStream()
-		await semaphore.wait()
+		sut.receive(action: .text(" world"))
 
 		#expect(sut.display.lines[0].cells[0] == .char("H"))
 		#expect(sut.display.lines[0].cells[5] == .char(" "))
@@ -102,17 +97,11 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func insertTextHandlesNewlines() async {
-		let semaphore = TestSemaphore()
-		let keyboard = Keyboard.Controller()
-		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
-		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
+	func insertTextHandlesNewlines() {
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
 
-		await semaphore.wait()
 		sut.setText("abc")
-		keyboard.insertText("\ndef")
-		keyboard.endActionStream()
-		await semaphore.wait()
+		sut.receive(action: .text("\ndef"))
 
 		#expect(sut.display.lines[0].cells[3] == .blank)
 		#expect(sut.display.lines[1].cells[0] == .char("d"))
@@ -122,17 +111,11 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func insertTextIgnoresNonASCIICharacters() async {
-		let semaphore = TestSemaphore()
-		let keyboard = Keyboard.Controller()
-		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
-		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
+	func insertTextIgnoresNonASCIICharacters() {
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
 
-		await semaphore.wait()
 		sut.setText("ab")
-		keyboard.insertText("😀cd")
-		keyboard.endActionStream()
-		await semaphore.wait()
+		sut.receive(action: .text("😀cd"))
 
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
@@ -144,17 +127,11 @@ struct DisplayViewModelTests {
 	// MARK: - deleteBackward
 
 	@Test
-	func deleteBackwardRemovesCharacter() async {
-		let semaphore = TestSemaphore()
-		let keyboard = Keyboard.Controller()
-		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
-		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
+	func deleteBackwardRemovesCharacter() {
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
 
-		await semaphore.wait()
 		sut.setText("abc")
-		keyboard.deleteBackward()
-		keyboard.endActionStream()
-		await semaphore.wait()
+		sut.receive(action: .backspace)
 
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
@@ -162,38 +139,26 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func deleteBackwardRemovesAllCharacters() async {
-		let semaphore = TestSemaphore()
-		let keyboard = Keyboard.Controller()
-		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
-		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
+	func deleteBackwardRemovesAllCharacters() {
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
 
-		await semaphore.wait()
 		sut.setText("abc")
-		keyboard.deleteBackward()
-		keyboard.deleteBackward()
-		keyboard.deleteBackward()
-		keyboard.endActionStream()
-		await semaphore.wait()
+		sut.receive(action: .backspace)
+		sut.receive(action: .backspace)
+		sut.receive(action: .backspace)
 
 		#expect(sut.display.lines[0].cells[0] == .cursor)
 	}
 
 	@Test
-	func deleteBackwardAcrossNewline() async {
-		let semaphore = TestSemaphore()
-		let keyboard = Keyboard.Controller()
-		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
-		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
+	func deleteBackwardAcrossNewline() {
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
 
-		await semaphore.wait()
 		sut.setText("abc\ndef")
-		keyboard.deleteBackward()
-		keyboard.deleteBackward()
-		keyboard.deleteBackward()
-		keyboard.deleteBackward()
-		keyboard.endActionStream()
-		await semaphore.wait()
+		sut.receive(action: .backspace)
+		sut.receive(action: .backspace)
+		sut.receive(action: .backspace)
+		sut.receive(action: .backspace)
 
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
@@ -204,21 +169,15 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func deleteBackwardAcrossLineBreak() async {
-		let semaphore = TestSemaphore()
-		let keyboard = Keyboard.Controller()
-		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
-		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
+	func deleteBackwardAcrossLineBreak() {
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
 
 		// i is the 9th char that goes to the next line
-		await semaphore.wait()
 		sut.setText("abcdefghijk")
-		keyboard.deleteBackward()
-		keyboard.deleteBackward()
-		keyboard.deleteBackward()
-		keyboard.deleteBackward()
-		keyboard.endActionStream()
-		await semaphore.wait()
+		sut.receive(action: .backspace)
+		sut.receive(action: .backspace)
+		sut.receive(action: .backspace)
+		sut.receive(action: .backspace)
 
 		#expect(sut.display.lines[0].cells[4] == .char("e"))
 		#expect(sut.display.lines[0].cells[5] == .char("f"))
@@ -229,45 +188,37 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func deleteBackwardRemovesNewline() async {
-		let semaphore = TestSemaphore()
-		let keyboard = Keyboard.Controller()
-		let subscriptionContext = makeKeyEventSubscriptionContext(semaphore: semaphore)
-		let sut = DisplayViewModel(dependencies: .mock(keyEvents: keyboard, keyEventSubscriptionContext: subscriptionContext))
+	func deleteBackwardRemovesNewline() {
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
 
-		await semaphore.wait()
 		sut.setText("abc\n")
-		keyboard.deleteBackward()
-		keyboard.endActionStream()
-		await semaphore.wait()
+		sut.receive(action: .backspace)
 
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
 		#expect(sut.display.lines[0].cells[2] == .char("c"))
 		#expect(sut.display.lines[0].cells[3] == .cursor)
 	}
-
-	private func makeKeyEventSubscriptionContext(semaphore: TestSemaphore) -> DisplayViewModel.Dependencies.Subscription {
-		{ subscription in
-			Task {
-				await semaphore.signal()
-				await subscription()
-				await semaphore.signal()
-			}
-		}
-	}
 }
 
-private extension DisplayViewModel.Dependencies {
-	static func mock(
-		keyEvents: Keyboard.Controller = .init(),
-		keyEventSubscriptionContext: @escaping Subscription = { operation in
-			Task<Void, Never>(operation: operation)
-		}
-	) -> DisplayViewModel.Dependencies {
-		.init(
-			keyEvents: keyEvents,
-			keyEventSubscriptionContext: keyEventSubscriptionContext
-		)
+private final class EmptyKeyboarController: Keyboard.Controller {
+	var canShowKeyboard: Bool = false
+
+	func insertText(_ text: String) {
+	}
+	
+	func deleteBackward() {
+	}
+	
+	func toggleKeyboard() {
+	}
+	
+	func setService(_ service: any RemoteDisplay.Keyboard.Service) {
+	}
+	
+	func subscribe(client: any RemoteDisplay.Keyboard.Client) {
+	}
+	
+	func unsubscribe(clientID: UUID) {
 	}
 }

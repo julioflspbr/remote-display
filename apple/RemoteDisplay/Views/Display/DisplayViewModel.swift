@@ -8,28 +8,39 @@
 import SwiftUI
 
 @Observable @MainActor
-final class DisplayViewModel {
-	@ObservationIgnored
-	private var keyPressTask: Task<Void, Never>!
+final class DisplayViewModel: Keyboard.Client {
+	let id	= UUID()
+	nonisolated private let keyboardController: Keyboard.Controller
 	private var positions: [Int] = [] // current position for each line
 
 	private(set) var display = Display()
 
-	init(dependencies: Dependencies) {
-		self.keyPressTask = dependencies.keyEventSubscriptionContext {
-			for await input in dependencies.keyEvents.keyboardAction {
-				switch input {
-					case .backspace:
-						self.deleteBackward()
-					case .text(let text):
-						self.insertText(text)
-				}
-			}
-		}
+	init(keyboardController: Keyboard.Controller = App.keyboarController) {
+		self.keyboardController = keyboardController
+		self.keyboardController.subscribe(client: self)
 	}
 
 	deinit {
-		self.keyPressTask.cancel()
+		let clientID = self.id
+		let controller = self.keyboardController
+		Task { @MainActor in
+			controller.unsubscribe(clientID: clientID)
+		}
+	}
+
+	func setText(_ text: String) {
+		self.positions = []
+		self.display = Display()
+		self.insertText(text)
+	}
+
+	func receive(action: Keyboard.Action) {
+		switch action {
+			case let .text(text):
+				self.insertText(text)
+			case .backspace:
+				self.deleteBackward()
+		}
 	}
 
 	private var currentCell: Display.Line.Cell {
@@ -39,12 +50,6 @@ final class DisplayViewModel {
 		set {
 			self.display.lines[self.positions.lastIndex].cells[self.positions.last] = newValue
 		}
-	}
-
-	func setText(_ text: String) {
-		self.positions = []
-		self.display = Display()
-		self.insertText(text)
 	}
 
 	private func deleteBackward() {

@@ -6,70 +6,120 @@
 //
 
 import Testing
+import Foundation
 @testable import RemoteDisplay
 
-@Suite
+@Suite @MainActor
 struct KeyboardControllerTests {
-	@Test
-	func testKeyboardInput() async {
+	typealias KeyboardController = Keyboard.KeyboardController
+
+	@Test("toggle keyboard when controller allows it")
+	func toggleKeyboardWhenAllowed() {
 		// given
-		let semaphore = TestSemaphore()
-		let sut = Keyboard.Controller()
+		let service = MockKeyboardService(isKeyboardVisible: false)
+		let sut = KeyboardController()
+		sut.setService(service)
 
 		// when
-		let collector = self.makeCollector(sut: sut, semaphore: semaphore)
-
-		await semaphore.wait()
-		Task {
-			await sut.insertText("ab")
-			await sut.insertText("c")
-			await sut.endActionStream()
-		}
-
+		sut.canShowKeyboard = true
+		sut.toggleKeyboard()
 		// then
-		let result = await collector.value
-		#expect(result.count == 2, "There were 2 valid text inputs, but the result does not contain 2 results")
-		#expect(result[0].containedText == "ab", "The first input doesn't match the output")
-		#expect(result[1].containedText == "c", "The first input doesn't match the output")
-	}
-
-	@Test
-	func testBackspaces() async {
-		// given
-		let semaphore = TestSemaphore()
-		let sut = Keyboard.Controller()
+		#expect(service.isKeyboardVisible, "The keyboard should be visible on first toggle")
 
 		// when
-		let collector = self.makeCollector(sut: sut, semaphore: semaphore)
-
-		await semaphore.wait()
-		Task {
-			await sut.deleteBackward()
-			await sut.deleteBackward()
-			await sut.deleteBackward()
-			await sut.endActionStream()
-		}
-
+		sut.toggleKeyboard()
 		// then
-		let result = await collector.value
-		#expect(result.count == 3, "There were 3 valid backspace inputs, but the result does not contain 3 results")
-		#expect(result.allSatisfy({ it in it.isBackspace }), "Not all the inputs were backspaces")
+		#expect(!service.isKeyboardVisible, "The keyboard should be hidden on second toggle")
 	}
 
-	func makeCollector(sut: Keyboard.Controller, semaphore: TestSemaphore) -> Task<[Keyboard.Action], Never> {
-		Task {
-			var result = [Keyboard.Action]()
-			await semaphore.signal()
-			for await input in await sut.keyboardAction {
-				result.append(input)
-			}
-			return result
-		}
+	@Test("controller does not allow keyboard toggling")
+	func toggleKeyboardNotAllowed() {
+		// given
+		let service = MockKeyboardService(isKeyboardVisible: false)
+		let sut = KeyboardController()
+		sut.setService(service)
+
+		// when
+		sut.canShowKeyboard = false
+		sut.toggleKeyboard()
+
+		// then
+		#expect(!service.isKeyboardVisible, "The keyboard should not be toggled when not allowed")
+	}
+
+	@Test("canShoKeyboard automatically hides the keyboard when set to false")
+	func canShowKeyboardHidesKeyboard() {
+		// given
+		let service = MockKeyboardService(isKeyboardVisible: true)
+		let sut = KeyboardController()
+		sut.setService(service)
+
+		// when
+		sut.canShowKeyboard = true
+		sut.toggleKeyboard()
+		// then
+		#expect(service.isKeyboardVisible, "The keyboard should be visible on first toggle")
+
+		// when
+		sut.canShowKeyboard = false
+
+		// then
+		#expect(!service.isKeyboardVisible, "The keyboard should be hidden when canShowKeyboard is set to false")
+	}
+
+	@Test("multiple subscribers receive the same actions and in sequence")
+	func multipleSubscribersReceiveTextInSequence() {
+		// given
+		let sut = KeyboardController()
+		let client1 = MockKeyboardClient()
+		let client2 = MockKeyboardClient()
+
+
+		// when
+		sut.subscribe(client: client1)
+		sut.subscribe(client: client2)
+
+		sut.insertText("ab")
+		sut.insertText("c")
+		sut.deleteBackward()
+		sut.insertText("")
+		sut.deleteBackward()
+
+		// then
+		let expectedActions: [Keyboard.Action] = [.text("ab"), .text("c"), .backspace, .backspace]
+		#expect(client1.actions == expectedActions, "Client 1 should receive the same actions in the same order")
+		#expect(client2.actions == expectedActions, "Client 2 should receive the same actions in the same order")
+	}
+}
+
+private final class MockKeyboardService: Keyboard.Service {
+	var isKeyboardVisible: Bool
+
+	init(isKeyboardVisible: Bool) {
+		self.isKeyboardVisible = isKeyboardVisible
+	}
+
+	func showKeyboard() {
+		self.isKeyboardVisible = true
+	}
+
+	func hideKeyboard() {
+		self.isKeyboardVisible = false
+	}
+}
+
+private final class MockKeyboardClient: Keyboard.Client {
+	let id = UUID()
+
+	var actions: [Keyboard.Action] = []
+
+	func receive(action: Keyboard.Action) {
+		actions.append(action)
 	}
 }
 
 private extension Keyboard.Action {
-	var containedText: String? {
+	var text: String? {
 		guard case let .text(text) = self else {
 			return nil
 		}
@@ -81,6 +131,19 @@ private extension Keyboard.Action {
 			true
 		} else {
 			false
+		}
+	}
+}
+
+extension Keyboard.Action: @retroactive Equatable {
+	public static func == (lhs: Keyboard.Action, rhs: Keyboard.Action) -> Bool {
+		switch (lhs, rhs) {
+			case let (.text(ltext), .text(rtext)):
+				return ltext == rtext
+			case (.backspace, .backspace):
+				return true
+			default:
+				return false
 		}
 	}
 }

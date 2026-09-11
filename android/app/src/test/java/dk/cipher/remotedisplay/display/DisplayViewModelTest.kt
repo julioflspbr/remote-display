@@ -1,25 +1,15 @@
 package dk.cipher.remotedisplay.display
 
-import dk.cipher.remotedisplay.keyboard.KeyboardController
-import dk.cipher.remotedisplay.keyboard.KeyboardForwarder
+import dk.cipher.remotedisplay.keyboard.Keyboard
 import dk.cipher.remotedisplay.models.Cell
 import dk.cipher.remotedisplay.views.display.DisplayViewModel
-import dk.cipher.remotedisplay.views.display.DisplayViewModel.Dependencies.Subscription
 import org.junit.Test
 import junit.framework.TestCase.assertEquals
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestCoroutineScheduler
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runTest
 
 class DisplayViewModelTest {
     @Test
     fun `setText displays characters`() {
-        val sut = DisplayViewModel(makeMockOfDisplayViewModelDependencies())
+        val sut = DisplayViewModel(EmptyKeyboardController())
 
         sut.setText("Hello")
 
@@ -33,7 +23,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `setText places cursor`() {
-        val sut = DisplayViewModel(makeMockOfDisplayViewModelDependencies())
+        val sut = DisplayViewModel(EmptyKeyboardController())
 
         sut.setText("abc")
 
@@ -42,7 +32,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `setText handles newlines`() {
-        val sut = DisplayViewModel(makeMockOfDisplayViewModelDependencies())
+        val sut = DisplayViewModel(EmptyKeyboardController())
 
         sut.setText("abc\ndef")
 
@@ -58,7 +48,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `setText resets previous contents`() {
-        val sut = DisplayViewModel(makeMockOfDisplayViewModelDependencies())
+        val sut = DisplayViewModel(EmptyKeyboardController())
 
         sut.setText("first")
         sut.setText("second")
@@ -74,7 +64,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `setText ignores non ASCII characters`() {
-        val sut = DisplayViewModel(makeMockOfDisplayViewModelDependencies())
+        val sut = DisplayViewModel(EmptyKeyboardController())
 
         sut.setText("a😀b")
 
@@ -84,21 +74,11 @@ class DisplayViewModelTest {
     }
 
     @Test
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun `insertText appends characters`() = runTest {
-        val keyboard = KeyboardController()
-        val sut = DisplayViewModel(
-            makeMockOfDisplayViewModelDependencies(
-                keyboard,
-                makeKeyEventSubscriptionContext(testScheduler)
-            )
-        )
+    fun `insertText appends characters`() {
+        val sut = DisplayViewModel(EmptyKeyboardController())
 
-        advanceUntilIdle()
         sut.setText("Hello")
-        keyboard.insertText(" world")
-        keyboard.endChannel()
-        advanceUntilIdle()
+        sut.receive(Keyboard.Action.Text(" world"))
 
         assertEquals(Cell.Character('H'), sut.display.lines[0].cells[0].value)
         assertEquals(Cell.Character(' '), sut.display.lines[0].cells[5].value)
@@ -107,21 +87,11 @@ class DisplayViewModelTest {
     }
 
     @Test
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun `insertText handles newlines`() = runTest {
-        val keyboard = KeyboardController()
-        val sut = DisplayViewModel(
-            makeMockOfDisplayViewModelDependencies(
-                keyboard,
-                makeKeyEventSubscriptionContext(testScheduler)
-            )
-        )
+    fun `insertText handles newlines`() {
+        val sut = DisplayViewModel(EmptyKeyboardController())
 
-        advanceUntilIdle()
         sut.setText("abc")
-        keyboard.insertText("\ndef")
-        keyboard.endChannel()
-        advanceUntilIdle()
+        sut.receive(Keyboard.Action.Text("\ndef"))
 
         assertEquals(Cell.Blank, sut.display.lines[0].cells[3].value)
         assertEquals(Cell.Character('d'), sut.display.lines[1].cells[0].value)
@@ -131,21 +101,11 @@ class DisplayViewModelTest {
     }
 
     @Test
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun `insertText ignores non ASCII characters`() = runTest {
-        val keyboard = KeyboardController()
-        val sut = DisplayViewModel(
-            makeMockOfDisplayViewModelDependencies(
-                keyboard,
-                makeKeyEventSubscriptionContext(testScheduler)
-            )
-        )
+    fun `insertText ignores non ASCII characters`() {
+        val sut = DisplayViewModel(EmptyKeyboardController())
 
-        advanceUntilIdle()
         sut.setText("ab")
-        keyboard.insertText("😀cd")
-        keyboard.endChannel()
-        advanceUntilIdle()
+        sut.receive(Keyboard.Action.Text("😀cd"))
 
         assertEquals(Cell.Character('a'), sut.display.lines[0].cells[0].value)
         assertEquals(Cell.Character('b'), sut.display.lines[0].cells[1].value)
@@ -155,21 +115,11 @@ class DisplayViewModelTest {
     }
 
     @Test
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun `deleteBackward removes character`() = runTest {
-        val keyboard = KeyboardController()
-        val sut = DisplayViewModel(
-            makeMockOfDisplayViewModelDependencies(
-                keyboard,
-                makeKeyEventSubscriptionContext(testScheduler)
-            )
-        )
+    fun `deleteBackward removes character`() {
+        val sut = DisplayViewModel(EmptyKeyboardController())
 
-        advanceUntilIdle()
         sut.setText("abc")
-        keyboard.deleteBackward()
-        keyboard.endChannel()
-        advanceUntilIdle()
+        sut.receive(Keyboard.Action.Backspace)
 
         assertEquals(Cell.Character('a'), sut.display.lines[0].cells[0].value)
         assertEquals(Cell.Character('b'), sut.display.lines[0].cells[1].value)
@@ -177,46 +127,26 @@ class DisplayViewModelTest {
     }
 
     @Test
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun `deleteBackward removes all characters`() = runTest {
-        val keyboard = KeyboardController()
-        val sut = DisplayViewModel(
-            makeMockOfDisplayViewModelDependencies(
-                keyboard,
-                makeKeyEventSubscriptionContext(testScheduler)
-            )
-        )
+    fun `deleteBackward removes all characters`() {
+        val sut = DisplayViewModel(EmptyKeyboardController())
 
-        advanceUntilIdle()
         sut.setText("abc")
-        keyboard.deleteBackward()
-        keyboard.deleteBackward()
-        keyboard.deleteBackward()
-        keyboard.endChannel()
-        advanceUntilIdle()
+        sut.receive(Keyboard.Action.Backspace)
+        sut.receive(Keyboard.Action.Backspace)
+        sut.receive(Keyboard.Action.Backspace)
 
         assertEquals(Cell.Cursor, sut.display.lines[0].cells[0].value)
     }
 
     @Test
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun `deleteBackward across newline`() = runTest {
-        val keyboard = KeyboardController()
-        val sut = DisplayViewModel(
-            makeMockOfDisplayViewModelDependencies(
-                keyboard,
-                makeKeyEventSubscriptionContext(testScheduler)
-            )
-        )
+    fun `deleteBackward across newline`(){
+        val sut = DisplayViewModel(EmptyKeyboardController())
 
-        advanceUntilIdle()
         sut.setText("abc\ndef")
-        keyboard.deleteBackward()
-        keyboard.deleteBackward()
-        keyboard.deleteBackward()
-        keyboard.deleteBackward()
-        keyboard.endChannel()
-        advanceUntilIdle()
+        sut.receive(Keyboard.Action.Backspace)
+        sut.receive(Keyboard.Action.Backspace)
+        sut.receive(Keyboard.Action.Backspace)
+        sut.receive(Keyboard.Action.Backspace)
 
         assertEquals(Cell.Character('a'), sut.display.lines[0].cells[0].value)
         assertEquals(Cell.Character('b'), sut.display.lines[0].cells[1].value)
@@ -226,21 +156,11 @@ class DisplayViewModelTest {
     }
 
     @Test
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun `deleteBackward removes newline`() = runTest {
-        val keyboard = KeyboardController()
-        val sut = DisplayViewModel(
-            makeMockOfDisplayViewModelDependencies(
-                keyboard,
-                makeKeyEventSubscriptionContext(testScheduler)
-            )
-        )
+    fun `deleteBackward removes newline`() {
+        val sut = DisplayViewModel(EmptyKeyboardController())
 
-        advanceUntilIdle()
         sut.setText("abc\n")
-        keyboard.deleteBackward()
-        keyboard.endChannel()
-        advanceUntilIdle()
+        sut.receive(Keyboard.Action.Backspace)
 
         assertEquals(Cell.Character('a'), sut.display.lines[0].cells[0].value)
         assertEquals(Cell.Character('b'), sut.display.lines[0].cells[1].value)
@@ -248,15 +168,25 @@ class DisplayViewModelTest {
         assertEquals(Cell.Cursor, sut.display.lines[0].cells[3].value)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun makeMockOfDisplayViewModelDependencies(
-        keyEvents: KeyboardForwarder = KeyboardController(),
-        keyEventSubscriptionContext: Subscription = { operation ->
-            CoroutineScope(UnconfinedTestDispatcher()).launch { operation() }
-        }
-    ) = DisplayViewModel.Dependencies(keyEvents, keyEventSubscriptionContext)
+    private class EmptyKeyboardController: Keyboard.Controller {
+        override var canShowKeyboard = false
 
-    private fun makeKeyEventSubscriptionContext(scheduler: TestCoroutineScheduler): Subscription = { operation ->
-        CoroutineScope(StandardTestDispatcher(scheduler)).launch { operation() }
+        override fun insertText(text: String) {
+        }
+
+        override fun deleteBackward() {
+        }
+
+        override fun toggleKeyboard() {
+        }
+
+        override fun setService(service: Keyboard.Service) {
+        }
+
+        override fun subscribe(client: Keyboard.Client) {
+        }
+
+        override fun unsubscribe(client: Keyboard.Client) {
+        }
     }
 }

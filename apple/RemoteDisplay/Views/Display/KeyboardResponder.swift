@@ -9,27 +9,27 @@ import UIKit
 import SwiftUI
 
 extension View {
-	func respondToKeyboard(receiver: any Keyboard.Receiver = App.keyboarController) -> some View {
-		modifier(KeyboardResponder(receiver: receiver))
+	func respondToKeyboard(controller: any Keyboard.Controller = App.keyboarController) -> some View {
+		modifier(KeyboardResponder(controller: controller))
 	}
 }
 
 private struct KeyboardResponder: ViewModifier {
-	private(set) weak var receiver: (any Keyboard.Receiver)?
+	private(set) weak var controller: (any Keyboard.Controller)?
 
 	func body(content: Content) -> some View {
 		content
 			.overlay {
-				KeyboardResponderOverlay(receiver: receiver)
+				KeyboardResponderOverlay(controller: controller)
 			}
 	}
 }
 
 private struct KeyboardResponderOverlay: UIViewRepresentable {
-	private(set) weak var receiver: (any Keyboard.Receiver)?
+	private(set) weak var controller: (any Keyboard.Controller)?
 
 	func makeUIView(context: Context) -> KeyboardResponderView {
-		KeyboardResponderView(receiver: receiver)
+		KeyboardResponderView(controller: controller)
 	}
 
 	func updateUIView(_ uiView: KeyboardResponderView, context: Context) {
@@ -37,15 +37,16 @@ private struct KeyboardResponderOverlay: UIViewRepresentable {
 	}
 }
 
-private final class KeyboardResponderView: UIView, UIKeyInput {
+private final class KeyboardResponderView: UIView, Keyboard.Service, UIKeyInput {
 	let hasText = true
 	var keyboardType: UIKeyboardType = .asciiCapable
 
-	private(set) var receiver: (any Keyboard.Receiver)?
+	private(set) var controller: (any Keyboard.Controller)?
 
-	init(receiver: (any Keyboard.Receiver)?) {
-		self.receiver = receiver
+	init(controller: (any Keyboard.Controller)?) {
+		self.controller = controller
 		super.init(frame: .zero)
+		self.controller?.setService(self)
 	}
 
 	required init?(coder: NSCoder) {
@@ -63,19 +64,23 @@ private final class KeyboardResponderView: UIView, UIKeyInput {
 	}
 
 	@objc func didTap() {
-		if self.isFirstResponder {
-			self.resignFirstResponder()
-		} else {
-			self.becomeFirstResponder()
-		}
+		self.controller?.toggleKeyboard()
+	}
+
+	func showKeyboard() {
+		self.becomeFirstResponder()
+	}
+
+	func hideKeyboard() {
+		self.resignFirstResponder()
 	}
 
 	func insertText(_ text: String) {
-		self.receiver?.insertText(text)
+		self.controller?.insertText(text)
 	}
 
 	func deleteBackward() {
-		self.receiver?.deleteBackward()
+		self.controller?.deleteBackward()
 	}
 }
 

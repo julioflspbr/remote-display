@@ -6,5 +6,6 @@
 //
 
 enum App {
-	static let keyboarController = Keyboard.Controller()
+	@MainActor
+	static let keyboarController = Keyboard.KeyboardController()
 }
