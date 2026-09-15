@@ -15,7 +15,7 @@ final class DisplayViewModel: Keyboard.Client {
 
 	private(set) var display = Display()
 
-	init(keyboardController: Keyboard.Controller = App.keyboarController) {
+	init(keyboardController: Keyboard.Controller = App.Controller.keyboard) {
 		self.keyboardController = keyboardController
 		self.keyboardController.subscribe(client: self)
 	}

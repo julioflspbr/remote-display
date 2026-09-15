@@ -1,0 +1,78 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "ERROR_DESCRIPTION_CHANGE_WHILE_CONNECTED" : {
+      "comment" : "Error description for when there is an attempt to switch services, but the current service is still connected",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cannot change the service while connected."
+          }
+        }
+      }
+    },
+    "ERROR_DESCRIPTION_NO_BUILT_IN" : {
+      "comment" : "Error description for when there is no built-in services made available for the Service Controller",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No built-in service was provided to connect to the display."
+          }
+        }
+      }
+    },
+    "ERROR_RECOVERY_CHANGE_WHILE_CONNECTED" : {
+      "comment" : "Recovery suggestion for when there is an attempt to switch services, but the current service is still connected",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect the current service first, then try selecting another service again."
+          }
+        }
+      }
+    },
+    "SIMULATION_SERVICE_CONNECTION_FAILURE" : {
+      "comment" : "Localised error message for a connection failure simulation",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is a test error: simulating connection failure"
+          }
+        }
+      }
+    },
+    "SIMULATION_SERVICE_DISCONNECTION_FAILURE" : {
+      "comment" : "Localised error message for a disconnection failure simulation",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is a test error: simulating disconnection failure"
+          }
+        }
+      }
+    },
+    "SIMULATION_SERVICE_SEARCH_FAILURE" : {
+      "comment" : "Localised error message for a search failure simulation",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is a test error: simulating search failure"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.2"
+}
