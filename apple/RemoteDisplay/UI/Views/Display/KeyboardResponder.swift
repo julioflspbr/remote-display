@@ -9,7 +9,7 @@ import UIKit
 import SwiftUI
 
 extension View {
-	func respondToKeyboard(controller: any Keyboard.Controller = App.keyboarController) -> some View {
+	func respondToKeyboard(controller: any Keyboard.Controller = App.Controller.keyboard) -> some View {
 		modifier(KeyboardResponder(controller: controller))
 	}
 }
