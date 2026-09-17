@@ -1,4 +1,4 @@
-package dk.cipher.remotedisplay.views.character
+package dk.cipher.remotedisplay.ui.views.character
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

@@ -1,4 +1,4 @@
-package dk.cipher.remotedisplay.models
+package dk.cipher.remotedisplay.ui.models
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf

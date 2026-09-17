@@ -1,6 +1,6 @@
 package dk.cipher.remotedisplay.character
 
-import dk.cipher.remotedisplay.views.character.CharacterViewModel
+import dk.cipher.remotedisplay.ui.views.character.CharacterViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher

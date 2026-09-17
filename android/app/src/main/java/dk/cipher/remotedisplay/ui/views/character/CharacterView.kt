@@ -1,4 +1,4 @@
-package dk.cipher.remotedisplay.views.character
+package dk.cipher.remotedisplay.ui.views.character
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.aspectRatio
@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dk.cipher.remotedisplay.R
-import dk.cipher.remotedisplay.models.Cell
+import dk.cipher.remotedisplay.ui.models.Cell
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 

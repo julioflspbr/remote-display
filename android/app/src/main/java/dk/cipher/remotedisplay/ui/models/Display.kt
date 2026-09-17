@@ -1,4 +1,4 @@
-package dk.cipher.remotedisplay.models
+package dk.cipher.remotedisplay.ui.models
 
 data class Display(val lines: Array<Line> = Array(Specs.lineCount) { Line() }) {
     object Specs {

@@ -1,4 +1,4 @@
-package dk.cipher.remotedisplay.models
+package dk.cipher.remotedisplay.ui.models
 
 sealed interface Cell {
     data class Character(val char: Char): Cell

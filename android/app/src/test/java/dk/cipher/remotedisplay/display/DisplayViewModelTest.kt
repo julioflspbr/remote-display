@@ -1,8 +1,8 @@
 package dk.cipher.remotedisplay.display
 
 import dk.cipher.remotedisplay.keyboard.Keyboard
-import dk.cipher.remotedisplay.models.Cell
-import dk.cipher.remotedisplay.views.display.DisplayViewModel
+import dk.cipher.remotedisplay.ui.models.Cell
+import dk.cipher.remotedisplay.ui.views.display.DisplayViewModel
 import org.junit.Test
 import junit.framework.TestCase.assertEquals
 

@@ -1,12 +1,13 @@
-package dk.cipher.remotedisplay.views.display
+package dk.cipher.remotedisplay.ui.views.display
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import dk.cipher.remotedisplay.keyboard.Keyboard
-import dk.cipher.remotedisplay.models.Cell
-import dk.cipher.remotedisplay.models.Display
-import dk.cipher.remotedisplay.models.Line
+import dk.cipher.remotedisplay.ui.models.Cell
+import dk.cipher.remotedisplay.ui.models.Display
+import dk.cipher.remotedisplay.ui.models.Line
+import kotlin.text.iterator
 
 class DisplayViewModel(val keyboardController: Keyboard.Controller): ViewModel(), Keyboard.Client {
     companion object {
