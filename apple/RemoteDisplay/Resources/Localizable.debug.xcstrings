@@ -1,0 +1,42 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "SIMULATION_SERVICE_CONNECTION_FAILURE" : {
+      "comment" : "Localised error message for a connection failure simulation",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is a test error: simulating connection failure"
+          }
+        }
+      }
+    },
+    "SIMULATION_SERVICE_DISCONNECTION_FAILURE" : {
+      "comment" : "Localised error message for a disconnection failure simulation",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is a test error: simulating disconnection failure"
+          }
+        }
+      }
+    },
+    "SIMULATION_SERVICE_SEARCH_FAILURE" : {
+      "comment" : "Localised error message for a search failure simulation",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is a test error: simulating search failure"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.2"
+}

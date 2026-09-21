@@ -16,7 +16,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextDisplaysCharacters() {
-		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboardController())
 
 		sut.setText("Hello")
 
@@ -30,7 +30,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextPlacesCursor() {
-		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboardController())
 
 		sut.setText("abc")
 
@@ -39,7 +39,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextHandlesNewlines() {
-		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboardController())
 
 		sut.setText("abc\ndef")
 
@@ -56,7 +56,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextResetsPreviousContents() {
-		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboardController())
 
 		sut.setText("first")
 		sut.setText("second")
@@ -72,7 +72,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextIgnoresNonASCIICharacters() {
-		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboardController())
 
 		sut.setText("a😀b")
 
@@ -85,7 +85,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func insertTextAppendsCharacters() {
-		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboardController())
 
 		sut.setText("Hello")
 		sut.receive(action: .text(" world"))
@@ -98,7 +98,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func insertTextHandlesNewlines() {
-		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboardController())
 
 		sut.setText("abc")
 		sut.receive(action: .text("\ndef"))
@@ -112,7 +112,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func insertTextIgnoresNonASCIICharacters() {
-		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboardController())
 
 		sut.setText("ab")
 		sut.receive(action: .text("😀cd"))
@@ -128,7 +128,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func deleteBackwardRemovesCharacter() {
-		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboardController())
 
 		sut.setText("abc")
 		sut.receive(action: .backspace)
@@ -140,7 +140,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func deleteBackwardRemovesAllCharacters() {
-		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboardController())
 
 		sut.setText("abc")
 		sut.receive(action: .backspace)
@@ -152,7 +152,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func deleteBackwardAcrossNewline() {
-		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboardController())
 
 		sut.setText("abc\ndef")
 		sut.receive(action: .backspace)
@@ -170,7 +170,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func deleteBackwardAcrossLineBreak() {
-		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboardController())
 
 		// i is the 9th char that goes to the next line
 		sut.setText("abcdefghijk")
@@ -189,7 +189,7 @@ struct DisplayViewModelTests {
 
 	@Test
 	func deleteBackwardRemovesNewline() {
-		let sut = DisplayViewModel(keyboardController: EmptyKeyboarController())
+		let sut = DisplayViewModel(keyboardController: EmptyKeyboardController())
 
 		sut.setText("abc\n")
 		sut.receive(action: .backspace)
@@ -201,7 +201,7 @@ struct DisplayViewModelTests {
 	}
 }
 
-private final class EmptyKeyboarController: Keyboard.Controller {
+private final class EmptyKeyboardController: Keyboard.Controller {
 	var canShowKeyboard: Bool = false
 
 	func insertText(_ text: String) {

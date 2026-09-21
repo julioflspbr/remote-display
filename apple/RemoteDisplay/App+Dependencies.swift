@@ -5,7 +5,20 @@
 //  Created by Júlio Flores on 08/09/2026.
 //
 
+import Foundation
+
 enum App {
-	@MainActor
-	static let keyboarController = Keyboard.KeyboardController()
+	enum Controller {
+		@MainActor
+		static let keyboard = Keyboard.KeyboardController()
+
+		@ServiceActor
+		static let service: Services.ServiceController = {
+			do {
+				return try Services.ServiceController(dependencies: .live)
+			} catch {
+				fatalError(error.localizedDescription)
+			}
+		}()
+	}
 }
