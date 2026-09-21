@@ -1,4 +1,4 @@
-package dk.cipher.remotedisplay.character
+package dk.cipher.remotedisplay
 
 import dk.cipher.remotedisplay.ui.views.character.CharacterViewModel
 import kotlinx.coroutines.Dispatchers

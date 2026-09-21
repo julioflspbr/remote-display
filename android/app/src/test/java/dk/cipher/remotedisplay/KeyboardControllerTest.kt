@@ -1,10 +1,9 @@
-package dk.cipher.remotedisplay.keyboard
+package dk.cipher.remotedisplay
 
-import dk.cipher.remotedisplay.keyboard.Keyboard.Action
+import dk.cipher.remotedisplay.keyboard.Keyboard
+import dk.cipher.remotedisplay.keyboard.KeyboardController
+import junit.framework.TestCase
 import org.junit.Test
-import junit.framework.TestCase.assertTrue
-import junit.framework.TestCase.assertFalse
-import junit.framework.TestCase.assertEquals
 
 class KeyboardControllerTest {
     @Test
@@ -18,12 +17,18 @@ class KeyboardControllerTest {
         sut.canShowKeyboard = true
         sut.toggleKeyboard()
         // then
-        assertTrue("The keyboard should be visible on first toggle", service.isKeyboardVisible)
+        TestCase.assertTrue(
+            "The keyboard should be visible on first toggle",
+            service.isKeyboardVisible
+        )
 
         // when
         sut.toggleKeyboard()
         // then
-        assertFalse("The keyboard should be hidden on second toggle", service.isKeyboardVisible)
+        TestCase.assertFalse(
+            "The keyboard should be hidden on second toggle",
+            service.isKeyboardVisible
+        )
     }
 
     @Test
@@ -38,7 +43,10 @@ class KeyboardControllerTest {
         sut.toggleKeyboard()
 
         // then
-        assertFalse("The keyboard should not be toggled when not allowed", service.isKeyboardVisible)
+        TestCase.assertFalse(
+            "The keyboard should not be toggled when not allowed",
+            service.isKeyboardVisible
+        )
     }
 
     @Test
@@ -52,11 +60,17 @@ class KeyboardControllerTest {
         sut.canShowKeyboard = true
         sut.toggleKeyboard()
         // then
-        assertTrue("The keyboard should be visible on first toggle", service.isKeyboardVisible)
+        TestCase.assertTrue(
+            "The keyboard should be visible on first toggle",
+            service.isKeyboardVisible
+        )
 
         // when
         sut.canShowKeyboard = false
-        assertFalse("The keyboard should be hidden when canShowKeyboard is set to false", service.isKeyboardVisible)
+        TestCase.assertFalse(
+            "The keyboard should be hidden when canShowKeyboard is set to false",
+            service.isKeyboardVisible
+        )
     }
 
     @Test
@@ -77,9 +91,17 @@ class KeyboardControllerTest {
         sut.deleteBackward()
 
         // then
-        val expectedActions = listOf(Action.Text("ab"), Action.Text("c"), Action.Backspace, Action.Backspace)
-        assertEquals("Client 1 should receive the same actions in the same order", expectedActions, client1.actions)
-        assertEquals("Client 2 should receive the same actions in the same order", expectedActions, client2.actions)
+        val expectedActions = listOf(Keyboard.Action.Text("ab"), Keyboard.Action.Text("c"), Keyboard.Action.Backspace, Keyboard.Action.Backspace)
+        TestCase.assertEquals(
+            "Client 1 should receive the same actions in the same order",
+            expectedActions,
+            client1.actions
+        )
+        TestCase.assertEquals(
+            "Client 2 should receive the same actions in the same order",
+            expectedActions,
+            client2.actions
+        )
     }
 
     private class MockKeyboardService(var isKeyboardVisible: Boolean): Keyboard.Service {
@@ -93,9 +115,9 @@ class KeyboardControllerTest {
     }
 
     private class MockKeyboardClient: Keyboard.Client {
-        var actions = mutableListOf<Action>()
+        var actions = mutableListOf<Keyboard.Action>()
 
-        override fun receive(action: Action) {
+        override fun receive(action: Keyboard.Action) {
             actions.add(action)
         }
     }
