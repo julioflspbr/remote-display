@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">RemoteDisplay</string>
     <string name="title_activity_main">MainActivity</string>
+
+    <!-- Error Descriptions -->
+    <string name="error_description_no_built_in">No built-in service was provided to connect to the display.</string>
+    <string name="error_description_change_while_connected">Cannot change the service while connected. Disconnect the current service first, then try selecting another service again.</string>
+    <string name="error_description_service_controller_not_initialized">The service controller is not initialised. Call the function with a Context first, so that the service controller can be initialised.</string>
+    <string name="error_description_search_simulation">This is a test error: simulating search failure</string>
+    <string name="error_description_connection_simulation">This is a test error: simulating connection failure</string>
+    <string name="error_description_disconnection_simulation">This is a test error: simulating disconnection failure</string>
 </resources>
