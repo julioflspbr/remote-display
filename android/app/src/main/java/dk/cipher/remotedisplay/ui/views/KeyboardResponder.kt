@@ -1,4 +1,4 @@
-package dk.cipher.remotedisplay.views
+package dk.cipher.remotedisplay.ui.views
 
 import android.content.Context
 import android.text.InputType

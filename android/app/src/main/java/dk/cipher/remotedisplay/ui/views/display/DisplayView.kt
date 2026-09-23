@@ -1,4 +1,4 @@
-package dk.cipher.remotedisplay.views.display
+package dk.cipher.remotedisplay.ui.views.display
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,8 +16,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dk.cipher.remotedisplay.App
 import dk.cipher.remotedisplay.R
 import dk.cipher.remotedisplay.keyboard.Keyboard
-import dk.cipher.remotedisplay.models.Line
-import dk.cipher.remotedisplay.views.character.CharacterView
+import dk.cipher.remotedisplay.ui.models.Line
+import dk.cipher.remotedisplay.ui.views.character.CharacterView
 
 @Composable
 fun DisplayView(text: String, keyboardController: Keyboard.Controller = App.keyboardController) {

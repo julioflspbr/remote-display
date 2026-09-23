@@ -1,0 +1,6 @@
+<resources>
+    <!-- Error Descriptions -->
+    <string name="error_description_search_simulation">This is a test error: simulating search failure</string>
+    <string name="error_description_connection_simulation">This is a test error: simulating connection failure</string>
+    <string name="error_description_disconnection_simulation">This is a test error: simulating disconnection failure</string>
+</resources>
