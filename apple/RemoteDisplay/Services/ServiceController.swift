@@ -71,6 +71,7 @@ extension Services {
 			self.status = .connected
 		}
 
+		@discardableResult
 		func selectFirstService() throws -> any Service {
 			guard self.status != .connecting && self.status != .connected else {
 				throw ChangeServiceWhileConnectedError()
@@ -80,6 +81,7 @@ extension Services {
 			return self.builtIn[self.currentIndex]
 		}
 
+		@discardableResult
 		func selectNextService() throws -> (any Service)? {
 			guard self.status != .connecting && self.status != .connected else {
 				throw ChangeServiceWhileConnectedError()

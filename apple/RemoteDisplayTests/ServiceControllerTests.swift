@@ -19,7 +19,7 @@ struct ServiceControllerTests {
 	}
 
 	@Test("no auto-connect does not trigger search and connection")
-	func noAutoConnect() async throws {
+	func noAutoConnect() throws {
 		// given
 		var hasAutoConnectRun = false
 		let operation: Services.ServiceController.Dependencies.ConcurrencyContext = { operation in
@@ -115,13 +115,15 @@ struct ServiceControllerTests {
 		serviceB.controller = sut
 
 		// when
-		_ = try sut.selectNextService()
+		let selected = try sut.selectNextService()
 		try await sut.connect()
 
 		// then
+		#expect(selected === serviceB, "The Service B should be selected")
+		// this is how we inspect the controller: the *mock service* status reflect what the *controller* was before becoming connected
+		#expect(serviceA.status == .unavailable, "Service A is not selected, should be untouched")
+		#expect(serviceB.status == .connecting, "Service B is selected, should be the one connecting")
 		#expect(sut.status == .connected)
-		#expect(serviceA.status == .unavailable)
-		#expect(serviceB.status == .connecting)
 	}
 
 	@Test("select the next service when not connected")
@@ -153,12 +155,12 @@ struct ServiceControllerTests {
 		try await sut.connect()
 
 		// then
-		#expect(throws: Services.ServiceController.ChangeServiceWhileConnectedError(), "The service should not be changed while connected") {
-			_ = try sut.selectNextService()
+		#expect(throws: Services.ServiceController.ChangeServiceWhileConnectedError.self, "The service should not be changed while connected") {
+			try sut.selectNextService()
 		}
 	}
 
-	@Test("select the next service when not connected")
+	@Test("select the first service when not connected")
 	func selectFirstServiceWhenNotConnected() throws {
 		// given
 		let serviceA = MockService(name: "A")
@@ -183,8 +185,8 @@ struct ServiceControllerTests {
 		try await sut.connect()
 
 		// then
-		#expect(throws: Services.ServiceController.ChangeServiceWhileConnectedError(), "The service should not be changed while connected") {
-			_ = try sut.selectFirstService()
+		#expect(throws: Services.ServiceController.ChangeServiceWhileConnectedError.self, "The service should not be changed while connected") {
+			try sut.selectFirstService()
 		}
 	}
 
@@ -199,8 +201,8 @@ struct ServiceControllerTests {
 		try await sut.disconnect()
 
 		// then
-		#expect(sut.status == .disconnected)
-		#expect(mockService.status == .disconnecting)
+		#expect(mockService.status == .disconnecting, "The controller should be transitioned to disconnecting state before the disconnection")
+		#expect(sut.status == .disconnected, "The controller should set its status to disconnected after disconnection")
 	}
 }
 
