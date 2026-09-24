@@ -47,5 +47,4 @@ private struct LineView: View {
 #Preview {
 	DisplayView(text: "This is my\nMESSAGE TO YOU!")
 		.padding(20)
-		.background(.displayBackground)
 }

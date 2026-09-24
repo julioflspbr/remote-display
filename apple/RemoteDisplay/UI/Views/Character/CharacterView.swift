@@ -17,9 +17,9 @@ struct CharacterView: View {
 	var body: some View {
 		Text(LocalizedStringResource(unicodeScalarLiteral: "\(characterOrCursor)"))
 			.font(.display)
-			.foregroundStyle(.character)
+			.foregroundStyle(Color.Display.character)
 			.aspectRatio(5/8, contentMode: .fit)
-			.background(.characterBackground)
+			.background(Color.Display.characterBackground)
 			.onChange(of: cell, initial: true) {
 				if case .cursor = cell {
 					self.viewModel.blink()
@@ -43,7 +43,4 @@ struct CharacterView: View {
 
 #Preview {
 	CharacterView(cell: .cursor)
-		.frame(width: 50, height: 80)
-		.padding()
-		.background(.displayBackground)
 }
