@@ -43,4 +43,5 @@ struct CharacterView: View {
 
 #Preview {
 	CharacterView(cell: .cursor)
+		.previewBackground()
 }
