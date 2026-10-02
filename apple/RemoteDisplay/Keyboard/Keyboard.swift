@@ -14,17 +14,6 @@ enum Keyboard {
 	}
 
 	@MainActor
-	protocol Controller: Sendable, AnyObject {
-		var canShowKeyboard: Bool { get set }
-		func insertText(_ text: String)
-		func deleteBackward()
-		func toggleKeyboard()
-		func setService(_ service: any Service)
-		func subscribe(client: any Client)
-		func unsubscribe(clientID: UUID)
-	}
-
-	@MainActor
 	protocol Service: AnyObject {
 		func showKeyboard()
 		func hideKeyboard()

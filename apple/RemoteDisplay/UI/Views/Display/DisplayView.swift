@@ -10,12 +10,19 @@ import SwiftUI
 struct DisplayView: View {
 	let text: String
 	@State private var viewModel = DisplayViewModel()
+	@Environment(\.keyboardController) private var keyboardController
 
 	var body: some View {
 		DisplayTextView(display: viewModel.display)
-			.respondToKeyboard()
+			.respondToKeyboard(controller: keyboardController)
 			.onAppear {
 				self.viewModel.setText(self.text)
+			}
+			.onChange(of: keyboardController, initial: true) {
+				self.viewModel.setKeyboardController(keyboardController)
+			}
+			.onDisappear {
+				self.viewModel.unsetKeyboardController()
 			}
 	}
 }
@@ -47,5 +54,6 @@ private struct LineView: View {
 #Preview {
 	DisplayView(text: "This is my\nMESSAGE TO YOU!")
 		.padding(20)
-		.background(.displayBackground)
+		.previewBackground()
+		.environment(\.keyboardController, KeyboardController())
 }

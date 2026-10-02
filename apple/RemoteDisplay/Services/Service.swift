@@ -7,7 +7,7 @@
 
 enum Services {
 	@ServiceActor
-	protocol Service: Sendable, AnyObject {
+	protocol Service: Sendable, Hashable, AnyObject {
 		var status: Status { get }
 		func search() async throws
 		func connect() async throws
@@ -16,6 +16,11 @@ enum Services {
 
 	@ServiceActor
 	protocol ServiceDelegate: AnyObject {
-		func serviceDidUpdateStatus(_ service: Service)
+		func serviceDidUpdateStatus(_ service: any Service)
+	}
+}
+
+extension Services.Service {
+	func setDelegate(_ delegate: any Services.ServiceDelegate) {
 	}
 }

@@ -11,8 +11,6 @@ import Foundation
 
 @Suite @MainActor
 struct KeyboardControllerTests {
-	typealias KeyboardController = Keyboard.KeyboardController
-
 	@Test("toggle keyboard when controller allows it")
 	func toggleKeyboardWhenAllowed() {
 		// given
