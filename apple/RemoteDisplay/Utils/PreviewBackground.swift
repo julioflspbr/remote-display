@@ -5,6 +5,8 @@
 //  Created by Júlio Flores on 24/09/2026.
 //
 
+#if DEBUG
+
 import SwiftUI
 
 extension View {
@@ -25,3 +27,5 @@ private struct PreviewBackground: ViewModifier {
 			.background(Color.Display.displayBackground)
 	}
 }
+
+#endif

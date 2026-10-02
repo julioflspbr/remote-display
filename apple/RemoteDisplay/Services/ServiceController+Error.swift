@@ -7,17 +7,17 @@
 
 import Foundation
 
-extension Services.ServiceController {
+extension ServiceController {
 	protocol Error: LocalizedError, Equatable {
 	}
 
-	final class NoBuiltInServiceError: Services.ServiceController.Error {
+	final class NoBuiltInServiceError: Error {
 		var errorDescription: String? {
 			String(localized: .errorDescriptionNoBuiltIn)
 		}
 	}
 
-	final class ChangeServiceWhileConnectedError: Services.ServiceController.Error {
+	final class ChangeServiceWhileConnectedError: Error {
 		var errorDescription: String? {
 			String(localized: .errorDescriptionChangeWhileConnected)
 		}
@@ -28,7 +28,7 @@ extension Services.ServiceController {
 	}
 }
 
-extension Services.ServiceController.Error  {
+extension ServiceController.Error  {
 	static func == (lhs: Self, rhs: Self) -> Bool {
 		type(of: lhs) == type(of: rhs)
 	}

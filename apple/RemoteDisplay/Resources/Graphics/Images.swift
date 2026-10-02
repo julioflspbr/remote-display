@@ -12,5 +12,6 @@ extension Image {
 		static let smoke = Image("Service/SmokeIcon")
 		static let bluetooth = Image("Service/Bluetooth")
 		static let wifi = Image(systemName: "wifi")
+		static let cloud = Image(systemName: "cloud")
 	}
 }

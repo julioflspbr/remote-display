@@ -5,9 +5,10 @@
 //  Created by Júlio Flores on 14/09/2026.
 //
 
-extension Services.ServiceController {
+extension ServiceController {
+	@ServiceActor
 	struct Dependencies {
-		typealias ConcurrencyContext = (sending @escaping () async throws -> Void) -> Void
+		typealias ConcurrencyContext = (@Sendable @escaping () async throws -> Void) -> Void
 		let builtInServices: [any Services.Service]
 		let task: ConcurrencyContext
 		let autoConnect: Bool?
@@ -15,11 +16,11 @@ extension Services.ServiceController {
 }
 
 @ServiceActor
-extension Services.ServiceController.Dependencies {
-	static let live = Services.ServiceController.Dependencies(
+extension ServiceController.Dependencies {
+	static let live = ServiceController.Dependencies(
 		builtInServices: [
-			Services.Simulator(name: "Simulated Service LALA"),
-			Services.Simulator(name: "Simulated Service LONES")
+			Services.SmokeService(name: "Simulated Service LALA"),
+			Services.SmokeService(name: "Simulated Service LONES")
 		],
 		task: { operation in
 			Task(operation: operation)

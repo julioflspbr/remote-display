@@ -10,22 +10,18 @@ import SwiftUI
 @Observable @MainActor
 final class DisplayViewModel: Keyboard.Client {
 	let id	= UUID()
-	nonisolated private let keyboardController: Keyboard.Controller
+	private weak var keyboardController: KeyboardController?
 	private var positions: [Int] = [] // current position for each line
 
 	private(set) var display = Display()
 
-	init(keyboardController: Keyboard.Controller = App.Controller.keyboard) {
-		self.keyboardController = keyboardController
-		self.keyboardController.subscribe(client: self)
+	func setKeyboardController(_ controller: KeyboardController?) {
+		controller?.subscribe(client: self)
+		self.keyboardController = controller
 	}
 
-	deinit {
-		let clientID = self.id
-		let controller = self.keyboardController
-		Task { @MainActor in
-			controller.unsubscribe(clientID: clientID)
-		}
+	func unsetKeyboardController() {
+		self.keyboardController?.unsubscribe(client: self)
 	}
 
 	func setText(_ text: String) {

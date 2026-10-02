@@ -9,13 +9,13 @@ import UIKit
 import SwiftUI
 
 extension View {
-	func respondToKeyboard(controller: any Keyboard.Controller = App.Controller.keyboard) -> some View {
+	func respondToKeyboard(controller: KeyboardController?) -> some View {
 		modifier(KeyboardResponder(controller: controller))
 	}
 }
 
 private struct KeyboardResponder: ViewModifier {
-	private(set) weak var controller: (any Keyboard.Controller)?
+	let controller: KeyboardController?
 
 	func body(content: Content) -> some View {
 		content
@@ -26,14 +26,14 @@ private struct KeyboardResponder: ViewModifier {
 }
 
 private struct KeyboardResponderOverlay: UIViewRepresentable {
-	private(set) weak var controller: (any Keyboard.Controller)?
+	let controller: KeyboardController?
 
 	func makeUIView(context: Context) -> KeyboardResponderView {
-		KeyboardResponderView(controller: controller)
+		KeyboardResponderView()
 	}
 
-	func updateUIView(_ uiView: KeyboardResponderView, context: Context) {
-		// nothing to do
+	func updateUIView(_ view: KeyboardResponderView, context: Context) {
+		view.controller = controller
 	}
 }
 
@@ -41,16 +41,10 @@ private final class KeyboardResponderView: UIView, Keyboard.Service, UIKeyInput 
 	let hasText = true
 	var keyboardType: UIKeyboardType = .asciiCapable
 
-	private(set) var controller: (any Keyboard.Controller)?
-
-	init(controller: (any Keyboard.Controller)?) {
-		self.controller = controller
-		super.init(frame: .zero)
-		self.controller?.setService(self)
-	}
-
-	required init?(coder: NSCoder) {
-		fatalError("Not implemented")
+	weak var controller: KeyboardController? {
+		didSet {
+			self.controller?.setService(self)
+		}
 	}
 
 	override func layoutSubviews() {
