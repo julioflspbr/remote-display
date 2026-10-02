@@ -7,46 +7,48 @@
 
 import Testing
 import Foundation
+import Synchronization
 @testable import RemoteDisplay
 
 @Suite @ServiceActor
 struct ServiceControllerTests {
 	@Test("empty built-in services throw No Built-in Service error")
 	func throwErrorWhenNoBuiltInServices() {
-		#expect(throws: Services.ServiceController.NoBuiltInServiceError.self) {
-			try Services.ServiceController(dependencies: .mock())
+		#expect(throws: ServiceController.NoBuiltInServiceError.self) {
+			try ServiceController(dependencies: .mock())
 		}
 	}
 
 	@Test("no auto-connect does not trigger search and connection")
 	func noAutoConnect() throws {
 		// given
-		var hasAutoConnectRun = false
-		let operation: Services.ServiceController.Dependencies.ConcurrencyContext = { operation in
-			hasAutoConnectRun = true
+		let hasAutoConnectRunLock = Mutex(false)
+		let operation: ServiceController.Dependencies.ConcurrencyContext = { operation in
+			hasAutoConnectRunLock.withLock({ it in it = true })
 		}
 
 		// when
-		_ = try Services.ServiceController(dependencies: .mock([MockService(name: "unused")], operation, false))
+		_ = try ServiceController(dependencies: .mock([MockService(name: "unused")], operation, false))
 
 		// then
+		let hasAutoConnectRun = hasAutoConnectRunLock.withLock({ it in it })
 		#expect(!hasAutoConnectRun, "The controller should not start auto connection")
 	}
 
 	@Test("run auto-connect procedure")
 	func runAutoConnect() async throws {
 		// given
-		var task: Task<Void, Error>!
-		let operation: Services.ServiceController.Dependencies.ConcurrencyContext = { operation in
-			task = Task(operation: operation)
+		let task = Mutex<Task<Void, Error>?>(nil)
+		let operation: ServiceController.Dependencies.ConcurrencyContext = { operation in
+			task.withLock({ it in it = Task(operation: operation) })
 		}
 		let unreachableService = MockService(name: "unreachable")
 		let reachableService = MockService(name: "reachable")
 		unreachableService.isReachable = false
 
 		// when
-		_ = try Services.ServiceController(dependencies: .mock([unreachableService, reachableService], operation, true))
-		_ = try await task.value
+		_ = try ServiceController(dependencies: .mock([unreachableService, reachableService], operation, true))
+		_ = try await task.withLock({ it in it })?.value
 
 		// then
 		#expect(unreachableService.wasSearchCalled, "The service should have started auto search")
@@ -58,7 +60,7 @@ struct ServiceControllerTests {
 	@Test("search and find all available services")
 	func searchAndFindAllAvailableServices() async throws {
 		// given
-		let sut = try Services.ServiceController(dependencies: .mock([
+		let sut = try ServiceController(dependencies: .mock([
 			MockService(name: "A"), MockService(name: "B")
 		]))
 
@@ -78,7 +80,7 @@ struct ServiceControllerTests {
 		// given
 		let serviceA = MockService(name: "A")
 		let serviceB = MockService(name: "B")
-		let sut = try Services.ServiceController(dependencies: .mock([serviceA, serviceB]))
+		let sut = try ServiceController(dependencies: .mock([serviceA, serviceB]))
 
 		// when
 		serviceA.isReachable = true
@@ -94,7 +96,7 @@ struct ServiceControllerTests {
 		// given
 		let serviceA = MockService(name: "A")
 		let serviceB = MockService(name: "B")
-		let sut = try Services.ServiceController(dependencies: .mock([serviceA, serviceB]))
+		let sut = try ServiceController(dependencies: .mock([serviceA, serviceB]))
 
 		// when
 		serviceA.isReachable = false
@@ -110,7 +112,7 @@ struct ServiceControllerTests {
 		// given
 		let serviceA = MockService(name: "A")
 		let serviceB = MockService(name: "B")
-		let sut = try Services.ServiceController(dependencies: .mock([serviceA, serviceB]))
+		let sut = try ServiceController(dependencies: .mock([serviceA, serviceB]))
 		serviceA.controller = sut
 		serviceB.controller = sut
 
@@ -131,7 +133,7 @@ struct ServiceControllerTests {
 		// given
 		let serviceA = MockService(name: "A")
 		let serviceB = MockService(name: "B")
-		let sut = try Services.ServiceController(dependencies: .mock([serviceA, serviceB]))
+		let sut = try ServiceController(dependencies: .mock([serviceA, serviceB]))
 		var current: MockService?
 
 		// when
@@ -149,13 +151,13 @@ struct ServiceControllerTests {
 	func selectNextServiceWhenConnected() async throws {
 		// given
 		let mockService = MockService(name: "A")
-		let sut = try Services.ServiceController(dependencies: .mock([mockService]))
+		let sut = try ServiceController(dependencies: .mock([mockService]))
 
 		// when
 		try await sut.connect()
 
 		// then
-		#expect(throws: Services.ServiceController.ChangeServiceWhileConnectedError.self, "The service should not be changed while connected") {
+		#expect(throws: ServiceController.ChangeServiceWhileConnectedError.self, "The service should not be changed while connected") {
 			try sut.selectNextService()
 		}
 	}
@@ -165,7 +167,7 @@ struct ServiceControllerTests {
 		// given
 		let serviceA = MockService(name: "A")
 		let serviceB = MockService(name: "B")
-		let sut = try Services.ServiceController(dependencies: .mock([serviceA, serviceB]))
+		let sut = try ServiceController(dependencies: .mock([serviceA, serviceB]))
 		var current = try sut.selectNextService()
 
 		// when
@@ -179,13 +181,13 @@ struct ServiceControllerTests {
 	func selectFirstServiceWhenConnected() async throws {
 		// given
 		let mockService = MockService(name: "A")
-		let sut = try Services.ServiceController(dependencies: .mock([mockService]))
+		let sut = try ServiceController(dependencies: .mock([mockService]))
 
 		// when
 		try await sut.connect()
 
 		// then
-		#expect(throws: Services.ServiceController.ChangeServiceWhileConnectedError.self, "The service should not be changed while connected") {
+		#expect(throws: ServiceController.ChangeServiceWhileConnectedError.self, "The service should not be changed while connected") {
 			try sut.selectFirstService()
 		}
 	}
@@ -194,7 +196,7 @@ struct ServiceControllerTests {
 	func disconnectFromCurrentService() async throws {
 		// given
 		let mockService = MockService(name: "A")
-		let sut = try Services.ServiceController(dependencies: .mock([mockService]))
+		let sut = try ServiceController(dependencies: .mock([mockService]))
 		mockService.controller = sut
 
 		// when
@@ -206,20 +208,21 @@ struct ServiceControllerTests {
 	}
 }
 
-private extension Services.ServiceController.Dependencies {
+private extension ServiceController.Dependencies {
 	static func mock(
 		_ builtInServices: [any Services.Service] = [],
-		_ task: @escaping (sending @escaping () async throws -> Void) -> Void = { @Sendable _ in },
+		_ task: @escaping ConcurrencyContext = { _ in },
 		_ autoConnect: Bool? = nil
 	) -> Self {
-		Self(builtInServices: builtInServices, task: task, autoConnect: autoConnect)
+		ServiceController.Dependencies(builtInServices: builtInServices, task: task, autoConnect: autoConnect)
 	}
 }
 
+@ServiceActor
 private final class MockService: Services.Service {
 	let name: String
 	var isReachable = true
-	weak var controller: Services.ServiceController?
+	weak var controller: ServiceController?
 
 	private(set) var status: Services.Status = .unavailable
 	private(set) var wasSearchCalled = false
@@ -245,5 +248,13 @@ private final class MockService: Services.Service {
 		// status is repurposed for this test, to reflect the current
 		// controller status right before the desired tested method is called
 		self.status = self.controller?.status ?? .unavailable
+	}
+
+	nonisolated static func == (lhs: MockService, rhs: MockService) -> Bool {
+		lhs.name == rhs.name
+	}
+
+	nonisolated func hash(into hasher: inout Hasher) {
+		hasher.combine(name)
 	}
 }
