@@ -13,14 +13,13 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import dk.cipher.remotedisplay.App
 import dk.cipher.remotedisplay.R
-import dk.cipher.remotedisplay.keyboard.Keyboard
+import dk.cipher.remotedisplay.keyboard.KeyboardController
 import dk.cipher.remotedisplay.ui.models.Line
 import dk.cipher.remotedisplay.ui.views.character.CharacterView
 
 @Composable
-fun DisplayView(text: String, keyboardController: Keyboard.Controller = App.keyboardController) {
+fun DisplayView(text: String, keyboardController: KeyboardController) {
     val viewModel: DisplayViewModel = viewModel(
         factory = DisplayViewModel.build(keyboardController)
     )
@@ -42,7 +41,7 @@ fun DisplayView(text: String, keyboardController: Keyboard.Controller = App.keyb
 }
 
 @Composable
-fun LineView(line: Line) {
+private fun LineView(line: Line) {
     Row(
         Modifier
             .size(805.dp, 80.dp)
@@ -60,6 +59,6 @@ fun LineView(line: Line) {
 
 @Preview(widthDp = 805, heightDp = 160)
 @Composable
-fun DisplayPreview() {
-    DisplayView("Ola\nNatalia", App.keyboardController)
+private fun DisplayPreview() {
+    DisplayView("Ola\nNatalia", KeyboardController())
 }

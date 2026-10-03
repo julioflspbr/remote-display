@@ -4,14 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import dk.cipher.remotedisplay.keyboard.Keyboard
+import dk.cipher.remotedisplay.keyboard.KeyboardController
 import dk.cipher.remotedisplay.ui.models.Cell
 import dk.cipher.remotedisplay.ui.models.Display
 import dk.cipher.remotedisplay.ui.models.Line
 import kotlin.text.iterator
 
-class DisplayViewModel(val keyboardController: Keyboard.Controller): ViewModel(), Keyboard.Client {
+class DisplayViewModel(val keyboardController: KeyboardController?): ViewModel(), Keyboard.Client {
     companion object {
-        fun build(keyboardController: Keyboard.Controller) =
+        fun build(keyboardController: KeyboardController?) =
             viewModelFactory {
                 initializer {
                     DisplayViewModel(keyboardController)
@@ -30,11 +31,11 @@ class DisplayViewModel(val keyboardController: Keyboard.Controller): ViewModel()
         }
 
     init {
-        this.keyboardController.subscribe(this)
+        this.keyboardController?.subscribe(this)
     }
 
     override fun onCleared() {
-        this.keyboardController.unsubscribe(this)
+        this.keyboardController?.unsubscribe(this)
     }
 
     override fun receive(action: Keyboard.Action) {

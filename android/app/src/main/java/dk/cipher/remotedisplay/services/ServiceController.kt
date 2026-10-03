@@ -10,6 +10,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import androidx.core.content.edit
+import dk.cipher.remotedisplay.RemoteDisplayApp
 import kotlinx.coroutines.coroutineScope
 
 class ServiceController(dependencies: Dependencies) {
@@ -108,26 +109,26 @@ class ServiceController(dependencies: Dependencies) {
     }
 
     data class Dependencies(
-        val builtInServices: List<Services.Service>,
         val context: Context,
-        val task: ConcurrencyContext,
-        val autoConnect: Boolean?
+        val autoConnect: Boolean?,
+        val builtInServices: List<Services.Service>,
+        val task: ConcurrencyContext
     ) {
         typealias ConcurrencyContext = (suspend () -> Unit) -> Unit
 
         companion object {
-            fun live(context: Context) = Dependencies(
+            fun live() = Dependencies(
+                context = RemoteDisplayApp.shared,
+                autoConnect = null,
                 builtInServices = listOf(
-//                    ServiceSimulator("Simulated Service LALA", context),
-//                    ServiceSimulator("Simulated Service LONES", context)
+                    ServiceSimulator("Simulated Service LALA", RemoteDisplayApp.shared),
+                    ServiceSimulator("Simulated Service LONES", RemoteDisplayApp.shared)
                 ),
-                context = context,
                 task = { operation ->
                     CoroutineScope(Dispatchers.Main).launch {
                         operation()
                     }
-                },
-                autoConnect = null
+                }
             )
         }
     }
