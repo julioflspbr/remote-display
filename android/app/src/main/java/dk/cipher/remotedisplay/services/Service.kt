@@ -20,6 +20,7 @@ object Services {
         suspend fun search()
         suspend fun connect()
         suspend fun disconnect()
+        fun setDelegate(delegate: ServiceDelegate)
     }
 
     interface ServiceDelegate {

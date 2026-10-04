@@ -10,9 +10,9 @@ import dk.cipher.remotedisplay.ui.models.Display
 import dk.cipher.remotedisplay.ui.models.Line
 import kotlin.text.iterator
 
-class DisplayViewModel(val keyboardController: KeyboardController?): ViewModel(), Keyboard.Client {
+class DisplayViewModel(val keyboardController: KeyboardController): ViewModel(), Keyboard.Client {
     companion object {
-        fun build(keyboardController: KeyboardController?) =
+        fun build(keyboardController: KeyboardController) =
             viewModelFactory {
                 initializer {
                     DisplayViewModel(keyboardController)
@@ -31,11 +31,11 @@ class DisplayViewModel(val keyboardController: KeyboardController?): ViewModel()
         }
 
     init {
-        this.keyboardController?.subscribe(this)
+        this.keyboardController.subscribe(this)
     }
 
     override fun onCleared() {
-        this.keyboardController?.unsubscribe(this)
+        this.keyboardController.unsubscribe(this)
     }
 
     override fun receive(action: Keyboard.Action) {

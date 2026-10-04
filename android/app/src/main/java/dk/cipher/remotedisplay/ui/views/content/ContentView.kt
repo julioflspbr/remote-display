@@ -8,11 +8,24 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import dk.cipher.remotedisplay.R
 import dk.cipher.remotedisplay.keyboard.Keyboard
 import dk.cipher.remotedisplay.keyboard.KeyboardController
 import dk.cipher.remotedisplay.services.ServiceController
+import dk.cipher.remotedisplay.services.Services
+import dk.cipher.remotedisplay.services.preview
 import dk.cipher.remotedisplay.ui.views.display.DisplayView
+import dk.cipher.remotedisplay.ui.views.services.ServicesView
+import dk.cipher.remotedisplay.utils.previewBackground
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,7 +54,9 @@ class ContentView: Keyboard.Service, FrameLayout {
 
         dependencies.keyboardController.setService(this)
         val composeView = ComposeView(context).apply {
-            setContent { DisplayView("Placeholder", dependencies.keyboardController) }
+            setContent {
+                ComposableContentView(dependencies)
+            }
         }
         this.addView(composeView)
     }
@@ -82,4 +97,38 @@ class ContentView: Keyboard.Service, FrameLayout {
     override fun hideKeyboard() {
         this.inputManager.hideSoftInputFromWindow(this.windowToken, 0)
     }
+}
+
+@Composable
+private fun ComposableContentView(dependencies: ContentView.Dependencies) {
+    Row(
+        modifier = Modifier.previewBackground(),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        ServicesView(
+            serviceController = dependencies.serviceController,
+            modifier = Modifier.padding(horizontal = 10.dp)
+        )
+        DisplayView(
+            text = "0123456789012345",
+            keyboardController = dependencies.keyboardController
+        )
+        ServicesView(
+            serviceController = dependencies.serviceController,
+            modifier = Modifier.padding(horizontal = 10.dp)
+        )
+    }
+}
+
+@Preview(widthDp = 915, heightDp = 412)
+@Composable
+fun ContentPreview() {
+    ComposableContentView(ContentView.Dependencies(
+        keyboardController = KeyboardController(),
+        serviceController = ServiceController.preview(listOf(
+            Pair(painterResource(R.drawable.bluetooth), Services.Status.Unavailable),
+            Pair(painterResource(R.drawable.cloud), Services.Status.Available),
+            Pair(painterResource(R.drawable.wifi), Services.Status.Connecting)
+        )),
+    ))
 }

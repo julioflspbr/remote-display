@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import androidx.core.content.getSystemService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -14,7 +13,7 @@ import dk.cipher.remotedisplay.RemoteDisplayApp
 import kotlinx.coroutines.coroutineScope
 
 class ServiceController(dependencies: Dependencies) {
-    val builtIn: List<Services.Service>
+    val builtIn = dependencies.builtInServices
     var autoConnect: Boolean
         get() = _autoConnect
         set(value) {
@@ -32,11 +31,10 @@ class ServiceController(dependencies: Dependencies) {
     private var _autoConnect: Boolean
 
     init {
-        this.builtIn = dependencies.builtInServices
         if (this.builtIn.isEmpty()) {
             throw Services.NoBuiltInServiceError()
         }
-        this.storage = dependencies.context.getSystemService<SharedPreferences>()
+        this.storage = dependencies.context?.getSystemService<SharedPreferences>()
         if (dependencies.autoConnect != null) {
             _autoConnect = dependencies.autoConnect
         } else {
@@ -108,8 +106,14 @@ class ServiceController(dependencies: Dependencies) {
         this.status = Services.Status.Disconnected
     }
 
+    fun setDelegate(delegate: Services.ServiceDelegate) {
+        for (service in this.builtIn) {
+            service.setDelegate(delegate)
+        }
+    }
+
     data class Dependencies(
-        val context: Context,
+        val context: Context?,
         val autoConnect: Boolean?,
         val builtInServices: List<Services.Service>,
         val task: ConcurrencyContext
@@ -121,8 +125,8 @@ class ServiceController(dependencies: Dependencies) {
                 context = RemoteDisplayApp.shared,
                 autoConnect = null,
                 builtInServices = listOf(
-                    ServiceSimulator("Simulated Service LALA", RemoteDisplayApp.shared),
-                    ServiceSimulator("Simulated Service LONES", RemoteDisplayApp.shared)
+                    SmokeService("Simulated Service LALA", RemoteDisplayApp.shared),
+                    SmokeService("Simulated Service LONES", RemoteDisplayApp.shared)
                 ),
                 task = { operation ->
                     CoroutineScope(Dispatchers.Main).launch {
@@ -134,7 +138,7 @@ class ServiceController(dependencies: Dependencies) {
     }
 
     companion object {
-        const val AUTO_CONNECT_STORAGE_KEY = "services.simulator.autoConnect"
+        private const val AUTO_CONNECT_STORAGE_KEY = "services.simulator.autoConnect"
     }
 }
 
