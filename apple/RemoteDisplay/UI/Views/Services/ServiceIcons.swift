@@ -38,15 +38,13 @@ extension Services.Status {
 	}
 }
 
+#if DEBUG
 extension Services.SmokeService: Services.ServiceWithIcon {
 	var icon: Image {
 		.Service.smoke
 	}
 }
 
-#if DEBUG
-
 extension Services.PreviewService: Services.ServiceWithIcon {
 }
-
 #endif

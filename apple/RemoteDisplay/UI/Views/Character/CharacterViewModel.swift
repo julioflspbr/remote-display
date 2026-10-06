@@ -5,7 +5,7 @@
 //  Created by Júlio Flores on 22/08/2026.
 //
 
-import SwiftUI
+import Observation
 
 @Observable @MainActor
 final class CharacterViewModel {

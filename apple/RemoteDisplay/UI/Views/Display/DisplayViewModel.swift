@@ -5,7 +5,8 @@
 //  Created by Júlio Flores on 22/08/2026.
 //
 
-import SwiftUI
+import Foundation
+import Observation
 
 @Observable @MainActor
 final class DisplayViewModel: Keyboard.Client {
