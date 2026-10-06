@@ -10,17 +10,9 @@ import Synchronization
 
 @MainActor
 final class KeyboardController {
+	private let streamer = MulticastStreamer<Keyboard.Action>()
 	private var service: (any Keyboard.Service)?
-	private let subscriptions = Mutex<Set<AsyncStream<Keyboard.Action>.Continuation>>([])
 	private var isShowingKeyboard = false
-
-	deinit {
-		self.subscriptions.withLock { continuations in
-			for continuation in continuations {
-				continuation.finish()
-			}
-		}
-	}
 
 	var canShowKeyboard: Bool = false {
 		didSet {
@@ -32,16 +24,7 @@ final class KeyboardController {
 	}
 
 	var actions: AsyncStream<Keyboard.Action> {
-		AsyncStream { continuation in
-			self.subscriptions.withLock { subscriptions -> Void in
-				subscriptions.insert(continuation)
-			}
-			continuation.onTermination = { [weak self] _ in
-				self?.subscriptions.withLock { subscriptions -> Void in
-					subscriptions.remove(continuation)
-				}
-			}
-		}
+		self.streamer.makeStream()
 	}
 
 	func toggleKeyboard() {
@@ -65,15 +48,11 @@ final class KeyboardController {
 		guard !text.isEmpty else {
 			return
 		}
-		for client in *self.subscriptions {
-			client.yield(.text(text))
-		}
+		self.streamer.send(.text(text))
 	}
 
 	func deleteBackward() {
-		for client in *self.subscriptions {
-			client.yield(.backspace)
-		}
+		self.streamer.send(.backspace)
 	}
 }
 

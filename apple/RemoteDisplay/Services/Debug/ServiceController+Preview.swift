@@ -24,7 +24,7 @@ extension ServiceController {
 							}
 						)
 					)
-					controllerMutex.withLock { it in it = controller }
+					controllerMutex << controller
 				} catch {
 					fatalError("Error while trying to preview: \(error)")
 				}
@@ -32,7 +32,7 @@ extension ServiceController {
 			}
 		}
 		semaphore.wait()
-		return (*controllerMutex)!
+		return (controllerMutex>>)!
 	}
 }
 

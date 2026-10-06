@@ -74,7 +74,7 @@ final class ServiceController {
 	}
 
 	@discardableResult
-	func selectFirstService() throws -> any Services.Service {
+	func selectFirstService() throws(ChangeServiceWhileConnectedError) -> any Services.Service {
 		guard self.status != .connecting && self.status != .connected else {
 			throw ChangeServiceWhileConnectedError()
 		}
@@ -84,7 +84,7 @@ final class ServiceController {
 	}
 
 	@discardableResult
-	func selectNextService() throws -> (any Services.Service)? {
+	func selectNextService() throws(ChangeServiceWhileConnectedError) -> (any Services.Service)? {
 		guard self.status != .connecting && self.status != .connected else {
 			throw ChangeServiceWhileConnectedError()
 		}

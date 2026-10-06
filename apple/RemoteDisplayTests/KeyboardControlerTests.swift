@@ -121,13 +121,13 @@ private actor MockKeyboardClient {
 			self.setListening(false)
 		}
 		while !isListening {
-			try? await Task.sleep(for: .milliseconds(1))
+			try? await Task.waitForNextFrame()
 		}
 	}
 
 	func thatsIt() async {
 		while isListening {
-			try? await Task.sleep(for: .milliseconds(1))
+			try? await Task.waitForNextFrame()
 		}
 	}
 

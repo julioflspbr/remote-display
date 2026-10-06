@@ -104,7 +104,7 @@ struct DisplayViewModelTests {
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
 		let subscription = sut.startListeningToKeyboard(in: keyboardController)
-		try await self.advanceToNextFrame()
+		try await Task.waitForNextFrame()
 
 		// when
 		sut.setText("Hello")
@@ -125,7 +125,7 @@ struct DisplayViewModelTests {
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
 		let subscription = sut.startListeningToKeyboard(in: keyboardController)
-		try await self.advanceToNextFrame()
+		try await Task.waitForNextFrame()
 
 		// when
 		sut.setText("abc")
@@ -147,7 +147,7 @@ struct DisplayViewModelTests {
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
 		let subscription = sut.startListeningToKeyboard(in: keyboardController)
-		try await self.advanceToNextFrame()
+		try await Task.waitForNextFrame()
 
 		// when
 		sut.setText("ab")
@@ -171,7 +171,7 @@ struct DisplayViewModelTests {
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
 		let subscription = sut.startListeningToKeyboard(in: keyboardController)
-		try await self.advanceToNextFrame()
+		try await Task.waitForNextFrame()
 
 		// when
 		sut.setText("abc")
@@ -191,7 +191,7 @@ struct DisplayViewModelTests {
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
 		let subscription = sut.startListeningToKeyboard(in: keyboardController)
-		try await self.advanceToNextFrame()
+		try await Task.waitForNextFrame()
 
 		// when
 		sut.setText("abc")
@@ -212,7 +212,7 @@ struct DisplayViewModelTests {
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
 		let subscription = sut.startListeningToKeyboard(in: keyboardController)
-		try await self.advanceToNextFrame()
+		try await Task.waitForNextFrame()
 
 		// when
 		sut.setText("abc\ndef")
@@ -239,7 +239,7 @@ struct DisplayViewModelTests {
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
 		let subscription = sut.startListeningToKeyboard(in: keyboardController)
-		try await self.advanceToNextFrame()
+		try await Task.waitForNextFrame()
 
 		// when
 		// i is the 9th char that goes to the next line
@@ -267,7 +267,7 @@ struct DisplayViewModelTests {
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
 		let subscription = sut.startListeningToKeyboard(in: keyboardController)
-		try await self.advanceToNextFrame()
+		try await Task.waitForNextFrame()
 
 		// when
 		sut.setText("abc\n")
@@ -280,10 +280,6 @@ struct DisplayViewModelTests {
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
 		#expect(sut.display.lines[0].cells[2] == .char("c"))
 		#expect(sut.display.lines[0].cells[3] == .cursor)
-	}
-
-	private func advanceToNextFrame() async throws {
-		try await Task.sleep(for: .milliseconds(1))
 	}
 }
 
