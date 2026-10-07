@@ -313,4 +313,8 @@ private class MockService(val name: String): Services.Service {
         // controller status right before the desired tested method is called
         this.status = this.controller?.status ?: Services.Status.Unavailable
     }
+
+    override fun setDelegate(delegate: Services.ServiceDelegate) {
+        // no-op
+    }
 }
