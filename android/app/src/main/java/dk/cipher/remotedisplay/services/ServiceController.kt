@@ -9,7 +9,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import androidx.core.content.edit
-import dk.cipher.remotedisplay.RemoteDisplayApp
+import dk.cipher.remotedisplay.App
 import kotlinx.coroutines.coroutineScope
 
 class ServiceController(dependencies: Dependencies) {
@@ -122,11 +122,11 @@ class ServiceController(dependencies: Dependencies) {
 
         companion object {
             fun live() = Dependencies(
-                context = RemoteDisplayApp.shared,
+                context = App.shared,
                 autoConnect = null,
                 builtInServices = listOf(
-                    SmokeService("Simulated Service LALA", RemoteDisplayApp.shared),
-                    SmokeService("Simulated Service LONES", RemoteDisplayApp.shared)
+                    SmokeService("Simulated Service LALA", App.shared),
+                    SmokeService("Simulated Service LONES", App.shared)
                 ),
                 task = { operation ->
                     CoroutineScope(Dispatchers.Main).launch {
