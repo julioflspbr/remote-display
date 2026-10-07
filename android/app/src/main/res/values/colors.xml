@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="accent">#FF071E59</color>
     <color name="display_background">#FF198C33</color>
     <color name="character_background">#2F1959FF</color>
     <color name="character">#FF071E59</color>
+    <color name="service_available">#FF071E59</color>
+    <color name="service_connected">#FF0D4E0F</color>
+    <color name="service_failed">#FF6D0216</color>
+    <color name="service_unavailable">#59071E59</color>
 </resources>

@@ -2,6 +2,7 @@ package dk.cipher.remotedisplay.ui.views.character
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
@@ -46,10 +47,11 @@ fun CharacterView(cell: Cell, modifier: Modifier = Modifier) {
         text = "$char",
         style = TextStyle(
             color = colorResource(R.color.character),
-            fontSize = 70.sp,
+            fontSize = 50.sp,
             fontFamily = FontFamily(Font(R.font.ninepin))
         ),
         modifier = modifier
+            .height(50.dp)
             .aspectRatio(5f/8f, matchHeightConstraintsFirst = true)
             .background(color = colorResource(R.color.character_background))
     )
@@ -61,7 +63,6 @@ fun CharacterPreview() {
     CharacterView(
         cell = Cell.Cursor,
         modifier = Modifier
-            .size(50.dp, 80.dp)
             .background(color = colorResource(R.color.display_background))
             .padding(5.dp)
     )

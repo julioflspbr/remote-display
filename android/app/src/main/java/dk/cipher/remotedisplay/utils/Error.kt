@@ -1,8 +1,8 @@
 package dk.cipher.remotedisplay.utils
 
-import dk.cipher.remotedisplay.App
+import dk.cipher.remotedisplay.RemoteDisplayApp
 
 abstract class Error(val messageStringResource: Int): Throwable() {
     override val message: String?
-        get() = App.context?.getString(messageStringResource)
+        get() = RemoteDisplayApp.shared.getString(messageStringResource)
 }

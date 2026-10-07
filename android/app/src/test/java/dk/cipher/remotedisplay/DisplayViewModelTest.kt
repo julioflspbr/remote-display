@@ -1,15 +1,18 @@
 package dk.cipher.remotedisplay
 
 import dk.cipher.remotedisplay.keyboard.Keyboard
+import dk.cipher.remotedisplay.keyboard.KeyboardController
 import dk.cipher.remotedisplay.ui.models.Cell
 import dk.cipher.remotedisplay.ui.views.display.DisplayViewModel
 import junit.framework.TestCase
 import org.junit.Test
 
 class DisplayViewModelTest {
+    private val keyboardController = KeyboardController()
+
     @Test
     fun `setText displays characters`() {
-        val sut = DisplayViewModel(EmptyKeyboardController())
+        val sut = DisplayViewModel(keyboardController)
 
         sut.setText("Hello")
 
@@ -23,7 +26,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `setText places cursor`() {
-        val sut = DisplayViewModel(EmptyKeyboardController())
+        val sut = DisplayViewModel(keyboardController)
 
         sut.setText("abc")
 
@@ -32,7 +35,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `setText handles newlines`() {
-        val sut = DisplayViewModel(EmptyKeyboardController())
+        val sut = DisplayViewModel(keyboardController)
 
         sut.setText("abc\ndef")
 
@@ -48,7 +51,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `setText resets previous contents`() {
-        val sut = DisplayViewModel(EmptyKeyboardController())
+        val sut = DisplayViewModel(keyboardController)
 
         sut.setText("first")
         sut.setText("second")
@@ -64,7 +67,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `setText ignores non ASCII characters`() {
-        val sut = DisplayViewModel(EmptyKeyboardController())
+        val sut = DisplayViewModel(keyboardController)
 
         sut.setText("a😀b")
 
@@ -75,7 +78,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `insertText appends characters`() {
-        val sut = DisplayViewModel(EmptyKeyboardController())
+        val sut = DisplayViewModel(keyboardController)
 
         sut.setText("Hello")
         sut.receive(Keyboard.Action.Text(" world"))
@@ -88,7 +91,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `insertText handles newlines`() {
-        val sut = DisplayViewModel(EmptyKeyboardController())
+        val sut = DisplayViewModel(keyboardController)
 
         sut.setText("abc")
         sut.receive(Keyboard.Action.Text("\ndef"))
@@ -102,7 +105,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `insertText ignores non ASCII characters`() {
-        val sut = DisplayViewModel(EmptyKeyboardController())
+        val sut = DisplayViewModel(keyboardController)
 
         sut.setText("ab")
         sut.receive(Keyboard.Action.Text("😀cd"))
@@ -116,7 +119,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `deleteBackward removes character`() {
-        val sut = DisplayViewModel(EmptyKeyboardController())
+        val sut = DisplayViewModel(keyboardController)
 
         sut.setText("abc")
         sut.receive(Keyboard.Action.Backspace)
@@ -128,7 +131,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `deleteBackward removes all characters`() {
-        val sut = DisplayViewModel(EmptyKeyboardController())
+        val sut = DisplayViewModel(keyboardController)
 
         sut.setText("abc")
         sut.receive(Keyboard.Action.Backspace)
@@ -140,7 +143,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `deleteBackward across newline`(){
-        val sut = DisplayViewModel(EmptyKeyboardController())
+        val sut = DisplayViewModel(keyboardController)
 
         sut.setText("abc\ndef")
         sut.receive(Keyboard.Action.Backspace)
@@ -157,7 +160,7 @@ class DisplayViewModelTest {
 
     @Test
     fun `deleteBackward removes newline`() {
-        val sut = DisplayViewModel(EmptyKeyboardController())
+        val sut = DisplayViewModel(keyboardController)
 
         sut.setText("abc\n")
         sut.receive(Keyboard.Action.Backspace)
@@ -166,27 +169,5 @@ class DisplayViewModelTest {
         TestCase.assertEquals(Cell.Character('b'), sut.display.lines[0].cells[1].value)
         TestCase.assertEquals(Cell.Character('c'), sut.display.lines[0].cells[2].value)
         TestCase.assertEquals(Cell.Cursor, sut.display.lines[0].cells[3].value)
-    }
-
-    private class EmptyKeyboardController: Keyboard.Controller {
-        override var canShowKeyboard = false
-
-        override fun insertText(text: String) {
-        }
-
-        override fun deleteBackward() {
-        }
-
-        override fun toggleKeyboard() {
-        }
-
-        override fun setService(service: Keyboard.Service) {
-        }
-
-        override fun subscribe(client: Keyboard.Client) {
-        }
-
-        override fun unsubscribe(client: Keyboard.Client) {
-        }
     }
 }

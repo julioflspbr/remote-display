@@ -2,12 +2,12 @@ package dk.cipher.remotedisplay.keyboard
 
 import dk.cipher.remotedisplay.keyboard.Keyboard.Action
 
-class KeyboardController : Keyboard.Controller {
+class KeyboardController {
     private var service: Keyboard.Service? = null
     private var subscriptions = mutableSetOf<Keyboard.Client>()
     private var isShowingKeyboard = false
     private var _canShowKeyboard = false
-    override var canShowKeyboard: Boolean
+    var canShowKeyboard: Boolean
         get() = _canShowKeyboard
         set(value) {
             _canShowKeyboard = value
@@ -17,7 +17,7 @@ class KeyboardController : Keyboard.Controller {
             }
         }
 
-    override fun toggleKeyboard() {
+    fun toggleKeyboard() {
         val service = this.service
         if (service == null || !this.canShowKeyboard) {
             return
@@ -31,19 +31,19 @@ class KeyboardController : Keyboard.Controller {
         }
     }
 
-    override fun setService(service: Keyboard.Service) {
+    fun setService(service: Keyboard.Service) {
         this.service = service
     }
 
-    override fun subscribe(client: Keyboard.Client) {
+    fun subscribe(client: Keyboard.Client) {
         this.subscriptions.add(client)
     }
 
-    override fun unsubscribe(client: Keyboard.Client) {
+    fun unsubscribe(client: Keyboard.Client) {
         this.subscriptions.remove(client)
     }
 
-    override fun insertText(text: String) {
+    fun insertText(text: String) {
         if (text.isEmpty()) {
             return
         }
@@ -52,7 +52,7 @@ class KeyboardController : Keyboard.Controller {
         }
     }
 
-    override fun deleteBackward() {
+    fun deleteBackward() {
         for (client in this.subscriptions) {
             client.receive(Action.Backspace)
         }

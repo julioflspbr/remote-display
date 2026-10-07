@@ -14,10 +14,11 @@ import kotlin.random.Random
 import kotlin.random.nextInt
 import kotlin.time.Duration.Companion.seconds
 
-class ServiceSimulator(val name: String, context: Context): Services.Service {
+class SmokeService(val name: String, context: Context): Services.Service {
     var delegate: Services.ServiceDelegate? = null
+        private set
 
-    private val storage: SharedPreferences?
+    private val storage = context.getSystemService<SharedPreferences>()
     private var _simulateSearchFailure: Boolean
     var simulateSearchFailure: Boolean
         get() = _simulateSearchFailure
@@ -57,7 +58,6 @@ class ServiceSimulator(val name: String, context: Context): Services.Service {
         }
 
     init {
-        this.storage = context.getSystemService<SharedPreferences>()
         _simulateSearchFailure = this.storage?.getBoolean(FAIL_SEARCH_STORAGE_KEY, false) ?: false
         _simulateConnectionFailure = this.storage?.getBoolean(FAIL_CONNECTION_STORAGE_KEY, false) ?: false
         _simulateDisconnectionFailure = this.storage?.getBoolean(FAIL_DISCONNECTION_STORAGE_KEY, false) ?: false
@@ -122,6 +122,10 @@ class ServiceSimulator(val name: String, context: Context): Services.Service {
             this.status = Services.Status.Failure(error)
             throw error
         }
+    }
+
+    override fun setDelegate(delegate: Services.ServiceDelegate) {
+        this.delegate = delegate
     }
 
     private suspend fun simulateWork() {
