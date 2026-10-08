@@ -40,16 +40,15 @@ class ServiceController(dependencies: Dependencies) {
         } else {
             _autoConnect = this.storage?.getBoolean(AUTO_CONNECT_STORAGE_KEY, false) ?: false
         }
+    }
 
-        if (this.autoConnect) {
-            dependencies.task {
-                val services = this.search()
-                val firstServiceAvailable = services.firstAvailable()
-                if (firstServiceAvailable != null) {
-                    firstServiceAvailable.connect()
-                }
-            }
+    suspend fun autoConnect() {
+        if (!this.autoConnect) {
+            return
         }
+        val services = this.search()
+        val firstAvailable = services.firstAvailable()
+        firstAvailable?.connect()
     }
 
     fun search(): Channel<Services.Service> {
@@ -115,8 +114,7 @@ class ServiceController(dependencies: Dependencies) {
     data class Dependencies(
         val context: Context?,
         val autoConnect: Boolean?,
-        val builtInServices: List<Services.Service>,
-        val task: ConcurrencyContext
+        val builtInServices: List<Services.Service>
     ) {
         typealias ConcurrencyContext = (suspend () -> Unit) -> Unit
 
@@ -127,12 +125,7 @@ class ServiceController(dependencies: Dependencies) {
                 builtInServices = listOf(
                     SmokeService("Simulated Service LALA", App.shared),
                     SmokeService("Simulated Service LONES", App.shared)
-                ),
-                task = { operation ->
-                    CoroutineScope(Dispatchers.Main).launch {
-                        operation()
-                    }
-                }
+                )
             )
         }
     }

@@ -6,6 +6,9 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import dk.cipher.remotedisplay.services.ServiceController
 import dk.cipher.remotedisplay.services.Services
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class ServiceViewModel(controller: ServiceController): ViewModel(), Services.ServiceDelegate {
     data class DisplayService(
@@ -37,7 +40,10 @@ class ServiceViewModel(controller: ServiceController): ViewModel(), Services.Ser
         get() = _services.values.toList()
 
     init {
-            controller.setDelegate(this)
+        controller.setDelegate(this)
+        CoroutineScope(SupervisorJob()).launch {
+            controller.autoConnect()
+        }
     }
 
     override fun serviceDidUpdateStatus(service: Services.Service) {

@@ -14,6 +14,5 @@ private fun ServiceController.Dependencies.Companion.preview(services: List<Serv
     ServiceController.Dependencies(
         context = null,
         autoConnect = null,
-        builtInServices = services,
-        task = {}
+        builtInServices = services
     )
