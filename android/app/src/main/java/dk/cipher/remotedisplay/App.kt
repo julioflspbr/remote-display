@@ -7,7 +7,7 @@ import dk.cipher.remotedisplay.keyboard.KeyboardController
 import dk.cipher.remotedisplay.services.ServiceController
 import dk.cipher.remotedisplay.ui.views.content.ContentView
 
-class RemoteDisplayApp : ComponentActivity() {
+class App : ComponentActivity() {
     lateinit var keyboardController: KeyboardController
         private set
     lateinit var serviceController: ServiceController
@@ -39,7 +39,7 @@ class RemoteDisplayApp : ComponentActivity() {
     }
 
     companion object {
-        lateinit var shared: RemoteDisplayApp
+        lateinit var shared: App
             private set
     }
 }
