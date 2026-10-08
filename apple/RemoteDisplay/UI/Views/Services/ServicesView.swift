@@ -20,7 +20,11 @@ struct ServicesView: View {
 		}
 		.onChange(of: serviceController, initial: true) {
 			Task {
-				await self.viewModel.setServiceController(self.serviceController)
+				do {
+					try await self.viewModel.setServiceController(self.serviceController)
+				} catch {
+					assertionFailure("TODO: catch error with future AlertController")
+				}
 			}
 		}
 	}

@@ -16,49 +16,52 @@ final class ServiceController {
 
 	private var currentIndex = 0
 
-	init(dependencies: Dependencies) throws {
-		self.builtIn = dependencies.builtInServices
-		guard !self.builtIn.isEmpty else {
+	init(dependencies: Dependencies) throws(NoBuiltInServiceError) {
+		guard !dependencies.builtInServices.isEmpty else {
 			throw NoBuiltInServiceError()
 		}
+		self.builtIn = dependencies.builtInServices
 		if let autoConnect = dependencies.autoConnect {
 			self.autoConnect = autoConnect
 		}
-		if self.autoConnect {
-			dependencies.task { @ServiceActor in
-				let services = self.search()
-				if let firstAvailable = await services.firstAvailable {
-					try await firstAvailable.connect()
-				}
-			}
-		}
 	}
 
-	func search() -> AsyncStream<any Services.Service> {
-		AsyncStream { continuation in
-			Task {
-				// it's ok to swallow the error;
-				// the consumer will check individual service statuses
-				try await withThrowingTaskGroup(of: Void.self) { group in
-					self.status = .searching
-					for service in self.builtIn {
-						group.addTask {
-							try await ServiceActor.run { @Sendable in
-								try await service.search()
-								continuation.yield(service)
+	func autoConnect() async throws {
+		guard self.autoConnect else {
+			return
+		}
+		let services = self.search()
+		let firstAvailable = try await services.firstAvailable
+		try await firstAvailable?.connect()
+	}
 
-								if service.status == .available {
-									self.status = .available
+	func search() -> AsyncThrowingStream<any Services.Service, any Swift.Error> {
+		AsyncThrowingStream { continuation in
+			Task {
+				do {
+					try await withThrowingTaskGroup(of: Void.self) { group in
+						self.status = .searching
+						for service in self.builtIn {
+							group.addTask {
+								try await ServiceActor.run { @Sendable in
+									try await service.search()
+									continuation.yield(service)
+
+									if service.status == .available {
+										self.status = .available
+									}
 								}
 							}
 						}
-					}
 
-					try await group.waitForAll()
-					if self.status != .available {
-						self.status = .unavailable
+						try await group.waitForAll()
+						if self.status != .available {
+							self.status = .unavailable
+						}
+						continuation.finish()
 					}
-					continuation.finish()
+				} catch {
+					continuation.finish(throwing: error)
 				}
 			}
 		}
@@ -113,10 +116,10 @@ extension ServiceController: @ServiceActor Equatable {
 	}
 }
 
-private extension AsyncStream where Element == any Services.Service {
+private extension AsyncThrowingStream where Element == any Services.Service {
 	var firstAvailable: Element? {
-		get async {
-			await first { @ServiceActor service in
+		get async throws {
+			try await first { @ServiceActor service in
 				service.status == .available
 			}
 		}
