@@ -20,12 +20,10 @@ final class ServicesViewModel {
 		Array(_services.values)
 	}
 
-	func setServiceController(_ controller: ServiceController?) async {
+	func setServiceController(_ controller: ServiceController?) async throws {
 		guard let controller else {
 			return
 		}
-
-		await controller.setDelegate(self)
 
 		_services = await ServiceActor.run { @Sendable in
 			let services: [DisplayService] = controller.builtIn.compactMap{ service in
@@ -37,6 +35,8 @@ final class ServicesViewModel {
 			}
 			return Dictionary(uniqueKeysWithValues: zip(services.map(\.id), services))
 		}
+		await controller.setDelegate(self)
+		try await controller.autoConnect()
 	}
 }
 

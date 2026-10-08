@@ -8,9 +8,7 @@
 extension ServiceController {
 	@ServiceActor
 	struct Dependencies {
-		typealias ConcurrencyContext = (@Sendable @escaping () async throws -> Void) -> Void
 		let builtInServices: [any Services.Service]
-		let task: ConcurrencyContext
 		let autoConnect: Bool?
 	}
 }
@@ -22,9 +20,6 @@ extension ServiceController.Dependencies {
 			Services.SmokeService(name: "Simulated Service LALA"),
 			Services.SmokeService(name: "Simulated Service LONES")
 		],
-		task: { operation in
-			Task(operation: operation)
-		},
 		autoConnect: nil
 	)
 }

@@ -1,5 +1,5 @@
 //
-//  RemoteDisplayApp.swift
+//  App.swift
 //  RemoteDisplay
 //
 //  Created by Júlio Flores on 17/08/2026.
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct RemoteDisplayApp: App {
+struct App: SwiftUI.App {
 	@State private var keyboardController: KeyboardController?
 	@State private var serviceController: ServiceController?
 

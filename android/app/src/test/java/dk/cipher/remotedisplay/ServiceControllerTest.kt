@@ -3,11 +3,6 @@ package dk.cipher.remotedisplay
 import androidx.test.core.app.ApplicationProvider
 import dk.cipher.remotedisplay.services.ServiceController
 import dk.cipher.remotedisplay.services.Services
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -28,50 +23,39 @@ class ServiceControllerTest {
     }
 
     @Test
-    fun `no auto-connect does not trigger search and connection`() {
+    fun `no auto-connect does not trigger search and connection`() = runTest {
         // given
-        var hasAutoConnectRun = false
-        val operation: ServiceController.Dependencies.ConcurrencyContext = {
-            hasAutoConnectRun = true
-        }
+        val service = MockService("service")
 
         // when
-        ServiceController(
+        val sut = ServiceController(
             buildServiceControllerDependencies(
                 listOf(MockService("unused")),
-                operation,
                 false
             )
         )
+        sut.autoConnect()
 
         // then
-        assertFalse("The controller should not start auto connection", hasAutoConnectRun)
+        assertFalse("The controller should not auto search", service.wasSearchCalled)
+        assertFalse("The controller should not start auto connection", service.wasConnectCalled)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `run auto-connect procedure`() = runTest {
         // given
-        val job = Job()
-        val operation: ServiceController.Dependencies.ConcurrencyContext = { operation ->
-            CoroutineScope(job + UnconfinedTestDispatcher()).launch {
-                operation()
-            }
-            job.complete()
-        }
         val unreachableService = MockService("unreachable")
         val reachableService = MockService("reachable")
         unreachableService.isReachable = false
 
         // when
-        ServiceController(
+        val sut = ServiceController(
             buildServiceControllerDependencies(
                 listOf(unreachableService, reachableService),
-                operation,
                 true
             )
         )
-        job.join()
+        sut.autoConnect()
 
         // then
         assertTrue("The service should have started auto search", unreachableService.wasSearchCalled)
@@ -275,13 +259,11 @@ class ServiceControllerTest {
 
     private fun buildServiceControllerDependencies(
         builtInServices: List<Services.Service> = listOf(),
-        task: (suspend () -> Unit) -> Unit = {},
         autoConnect: Boolean? = null)
     : ServiceController.Dependencies =
         ServiceController.Dependencies(
             builtInServices = builtInServices,
             context = ApplicationProvider.getApplicationContext(),
-            task = task,
             autoConnect = autoConnect
         )
 }

@@ -1,5 +1,5 @@
 //
-//  RemoteDisplayApp+Dependencies.swift
+//  App+Dependencies.swift
 //  RemoteDisplay
 //
 //  Created by Júlio Flores on 08/09/2026.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension RemoteDisplayApp {
+extension App {
 	@MainActor
 	enum Dependencies {
 		static func keyboardController() -> KeyboardController {
