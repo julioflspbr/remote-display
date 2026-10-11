@@ -18,9 +18,4 @@ enum Keyboard {
 		func showKeyboard()
 		func hideKeyboard()
 	}
-
-	@MainActor
-	protocol Client: Sendable, Identifiable where ID == UUID {
-		func receive(action: Keyboard.Action)
-	}
 }

@@ -32,7 +32,7 @@ extension ServiceController {
 			}
 		}
 		semaphore.wait()
-		return controllerMutex.withLock { it in it! }
+		return (*controllerMutex)!
 	}
 }
 

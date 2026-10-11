@@ -7,6 +7,7 @@
 
 import Testing
 import Foundation
+import Synchronization
 @testable import RemoteDisplay
 
 @Suite @MainActor
@@ -66,27 +67,27 @@ struct KeyboardControllerTests {
 	}
 
 	@Test("multiple subscribers receive the same actions and in sequence")
-	func multipleSubscribersReceiveTextInSequence() {
+	func multipleSubscribersReceiveTextInSequence() async {
 		// given
-		let sut = KeyboardController()
-		let client1 = MockKeyboardClient()
-		let client2 = MockKeyboardClient()
-
+		var sut: KeyboardController? = KeyboardController()
+		let client1 = await MockKeyboardClient(keyboardController: sut)
+		let client2 = await MockKeyboardClient(keyboardController: sut)
 
 		// when
-		sut.subscribe(client: client1)
-		sut.subscribe(client: client2)
-
-		sut.insertText("ab")
-		sut.insertText("c")
-		sut.deleteBackward()
-		sut.insertText("")
-		sut.deleteBackward()
+		sut?.insertText("ab")
+		sut?.insertText("c")
+		sut?.deleteBackward()
+		sut?.insertText("")
+		sut?.deleteBackward()
+		sut = nil
 
 		// then
+		await client1.thatsIt()
+		await client2.thatsIt()
+
 		let expectedActions: [Keyboard.Action] = [.text("ab"), .text("c"), .backspace, .backspace]
-		#expect(client1.actions == expectedActions, "Client 1 should receive the same actions in the same order")
-		#expect(client2.actions == expectedActions, "Client 2 should receive the same actions in the same order")
+		#expect(await client1.actions == expectedActions, "Client 1 should receive the same actions in the same order")
+		#expect(await client2.actions == expectedActions, "Client 2 should receive the same actions in the same order")
 	}
 }
 
@@ -106,15 +107,38 @@ private final class MockKeyboardService: Keyboard.Service {
 	}
 }
 
-private final class MockKeyboardClient: Keyboard.Client {
-	let id = UUID()
+private actor MockKeyboardClient {
+	private(set) var actions: [Keyboard.Action] = []
+	private(set) var isListening = false
 
-	var actions: [Keyboard.Action] = []
-
-	func receive(action: Keyboard.Action) {
-		actions.append(action)
+	init(keyboardController: KeyboardController!) async {
+		let actionStream = await keyboardController.actions
+		Task {
+			self.setListening(true)
+			for await action in actionStream {
+				self.appendAction(action)
+			}
+			self.setListening(false)
+		}
+		while !isListening {
+			try? await Task.sleep(for: .milliseconds(1))
+		}
 	}
-}
+
+	func thatsIt() async {
+		while isListening {
+			try? await Task.sleep(for: .milliseconds(1))
+		}
+	}
+
+	private func setListening(_ isListening: Bool) {
+		self.isListening = isListening
+	}
+
+	private func appendAction(_ action: Keyboard.Action) {
+		self.actions.append(action)
+	}
+ }
 
 private extension Keyboard.Action {
 	var text: String? {
