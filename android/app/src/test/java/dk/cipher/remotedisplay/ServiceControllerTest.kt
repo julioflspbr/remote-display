@@ -3,6 +3,8 @@ package dk.cipher.remotedisplay
 import androidx.test.core.app.ApplicationProvider
 import dk.cipher.remotedisplay.services.ServiceController
 import dk.cipher.remotedisplay.services.Services
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -22,6 +24,7 @@ class ServiceControllerTest {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `no auto-connect does not trigger search and connection`() = runTest {
         // given
@@ -34,13 +37,14 @@ class ServiceControllerTest {
                 false
             )
         )
-        sut.autoConnect()
+        sut.autoConnect(UnconfinedTestDispatcher())
 
         // then
         assertFalse("The controller should not auto search", service.wasSearchCalled)
         assertFalse("The controller should not start auto connection", service.wasConnectCalled)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `run auto-connect procedure`() = runTest {
         // given
@@ -55,7 +59,7 @@ class ServiceControllerTest {
                 true
             )
         )
-        sut.autoConnect()
+        sut.autoConnect(UnconfinedTestDispatcher())
 
         // then
         assertTrue("The service should have started auto search", unreachableService.wasSearchCalled)
@@ -64,6 +68,7 @@ class ServiceControllerTest {
         assertTrue("The service should have started auto connect", reachableService.wasConnectCalled)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `search and find all available services`() = runTest {
         // given
@@ -75,7 +80,7 @@ class ServiceControllerTest {
 
         // when
         val found = mutableListOf<Services.Service>()
-        for (service in sut.search()) {
+        for (service in sut.search(UnconfinedTestDispatcher())) {
             found.add(service)
         }
 
@@ -85,6 +90,7 @@ class ServiceControllerTest {
         assertEquals("The Service Controller should mark itself as available, since at least one service is available", Services.Status.Available, sut.status)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `controller is available when there is at least one available service`() = runTest {
         // given
@@ -100,7 +106,7 @@ class ServiceControllerTest {
         // when
         serviceA.isReachable = true
         serviceB.isReachable = false
-        val services = sut.search()
+        val services = sut.search(UnconfinedTestDispatcher())
         for (searched in services) {
             searchedServices.add(searched)
         }
@@ -110,6 +116,7 @@ class ServiceControllerTest {
         assertEquals("The Service Controller should mark itself as available, since at least one service is available", Services.Status.Available, sut.status)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `controller is unavailable when there are no available services`() = runTest {
         // given
@@ -125,7 +132,7 @@ class ServiceControllerTest {
         // when
         serviceA.isReachable = false
         serviceB.isReachable = false
-        val services = sut.search()
+        val services = sut.search(UnconfinedTestDispatcher())
         for (searched in services) {
             searchedServices.add(searched)
         }
