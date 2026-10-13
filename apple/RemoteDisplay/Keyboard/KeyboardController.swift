@@ -6,18 +6,40 @@
 //
 
 import Foundation
+import Synchronization
 
 @MainActor
 final class KeyboardController {
 	private var service: (any Keyboard.Service)?
-	private var subscriptions: [UUID: any Keyboard.Client] = [:]
+	private let subscriptions = Mutex<Set<AsyncStream<Keyboard.Action>.Continuation>>([])
 	private var isShowingKeyboard = false
+
+	deinit {
+		self.subscriptions.withLock { continuations in
+			for continuation in continuations {
+				continuation.finish()
+			}
+		}
+	}
 
 	var canShowKeyboard: Bool = false {
 		didSet {
 			if !self.canShowKeyboard {
 				self.service?.hideKeyboard()
 				self.isShowingKeyboard = false
+			}
+		}
+	}
+
+	var actions: AsyncStream<Keyboard.Action> {
+		AsyncStream { continuation in
+			self.subscriptions.withLock { subscriptions -> Void in
+				subscriptions.insert(continuation)
+			}
+			continuation.onTermination = { [weak self] _ in
+				self?.subscriptions.withLock { subscriptions -> Void in
+					subscriptions.remove(continuation)
+				}
 			}
 		}
 	}
@@ -39,26 +61,18 @@ final class KeyboardController {
 		self.service = service
 	}
 
-	func subscribe(client: any Keyboard.Client) {
-		self.subscriptions[client.id] = client
-	}
-
-	func unsubscribe(client: any Keyboard.Client) {
-		self.subscriptions.removeValue(forKey: client.id)
-	}
-
 	func insertText(_ text: String) {
 		guard !text.isEmpty else {
 			return
 		}
-		for client in self.subscriptions.values {
-			client.receive(action: .text(text))
+		for client in *self.subscriptions {
+			client.yield(.text(text))
 		}
 	}
 
 	func deleteBackward() {
-		for client in self.subscriptions.values {
-			client.receive(action: .backspace)
+		for client in *self.subscriptions {
+			client.yield(.backspace)
 		}
 	}
 }

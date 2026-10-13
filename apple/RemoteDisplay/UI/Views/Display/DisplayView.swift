@@ -19,10 +19,10 @@ struct DisplayView: View {
 				self.viewModel.setText(self.text)
 			}
 			.onChange(of: keyboardController, initial: true) {
-				self.viewModel.setKeyboardController(keyboardController)
+				self.viewModel.startListeningToKeyboard(in: keyboardController)
 			}
 			.onDisappear {
-				self.viewModel.unsetKeyboardController()
+				self.viewModel.stopListeningToKeyboard()
 			}
 	}
 }

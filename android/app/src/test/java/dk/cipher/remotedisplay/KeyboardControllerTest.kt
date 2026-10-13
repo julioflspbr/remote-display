@@ -2,8 +2,16 @@ package dk.cipher.remotedisplay
 
 import dk.cipher.remotedisplay.keyboard.Keyboard
 import dk.cipher.remotedisplay.keyboard.KeyboardController
+import dk.cipher.remotedisplay.utils.ClosingChannel
 import junit.framework.TestCase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import kotlin.coroutines.CoroutineContext
 
 class KeyboardControllerTest {
     @Test
@@ -74,16 +82,14 @@ class KeyboardControllerTest {
     }
 
     @Test
-    fun `multiple subscribers receive the same actions and in sequence`() {
+    fun `multiple subscribers receive the same actions and in sequence`() = runTest {
         // given
         val sut = KeyboardController()
-        val client1 = MockKeyboardClient()
-        val client2 = MockKeyboardClient()
+        val client1 = MockKeyboardClient(sut, StandardTestDispatcher(testScheduler))
+        val client2 = MockKeyboardClient(sut, StandardTestDispatcher(testScheduler))
+        testScheduler.advanceUntilIdle()
 
         // when
-        sut.subscribe(client1)
-        sut.subscribe(client2)
-
         sut.insertText("ab")
         sut.insertText("c")
         sut.deleteBackward()
@@ -91,6 +97,10 @@ class KeyboardControllerTest {
         sut.deleteBackward()
 
         // then
+        testScheduler.advanceUntilIdle()
+        client1.thatsIt()
+        client2.thatsIt()
+
         val expectedActions = listOf(Keyboard.Action.Text("ab"), Keyboard.Action.Text("c"), Keyboard.Action.Backspace, Keyboard.Action.Backspace)
         TestCase.assertEquals(
             "Client 1 should receive the same actions in the same order",
@@ -114,11 +124,23 @@ class KeyboardControllerTest {
         }
     }
 
-    private class MockKeyboardClient: Keyboard.Client {
+    private class MockKeyboardClient {
         var actions = mutableListOf<Keyboard.Action>()
+            private set
 
-        override fun receive(action: Keyboard.Action) {
-            actions.add(action)
+        val actionStream: ClosingChannel<Keyboard.Action>
+
+        constructor(keyboardController: KeyboardController, context: CoroutineContext) {
+            this.actionStream = keyboardController.actions
+            CoroutineScope(context).launch {
+                for (action in actionStream) {
+                    actions.add(action)
+                }
+            }
+        }
+
+        fun thatsIt() {
+            this.actionStream.close()
         }
     }
 }

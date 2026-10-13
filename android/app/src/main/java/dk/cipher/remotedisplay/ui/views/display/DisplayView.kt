@@ -1,22 +1,16 @@
 package dk.cipher.remotedisplay.ui.views.display
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import dk.cipher.remotedisplay.R
 import dk.cipher.remotedisplay.keyboard.KeyboardController
 import dk.cipher.remotedisplay.ui.models.Line
 import dk.cipher.remotedisplay.ui.views.character.CharacterView
@@ -24,11 +18,20 @@ import dk.cipher.remotedisplay.utils.previewBackground
 
 @Composable
 fun DisplayView(text: String, keyboardController: KeyboardController, modifier: Modifier = Modifier) {
-    val viewModel: DisplayViewModel = viewModel(
-        factory = DisplayViewModel.build(keyboardController)
-    )
+    val viewModel: DisplayViewModel = viewModel { DisplayViewModel() }
+
+    SideEffect(Unit) {
+        viewModel.startListeningToKeyboard(keyboardController)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.stopListeningToKeyboard()
+        }
+    }
 
     viewModel.setText(text)
+
     Column(
         modifier
             .clickable {

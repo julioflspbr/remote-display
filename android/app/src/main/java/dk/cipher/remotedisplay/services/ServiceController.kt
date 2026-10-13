@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import androidx.core.content.edit
 import dk.cipher.remotedisplay.App
 import kotlinx.coroutines.coroutineScope
+import kotlin.coroutines.CoroutineContext
 
 class ServiceController(dependencies: Dependencies) {
     val builtIn = dependencies.builtInServices
@@ -42,21 +43,21 @@ class ServiceController(dependencies: Dependencies) {
         }
     }
 
-    suspend fun autoConnect() {
+    suspend fun autoConnect(searchContext: CoroutineContext? = null) {
         if (!this.autoConnect) {
             return
         }
-        val services = this.search()
+        val services = this.search(searchContext)
         val firstAvailable = services.firstAvailable()
         firstAvailable?.connect()
     }
 
-    fun search(): Channel<Services.Service> {
+    fun search(context: CoroutineContext? = null): Channel<Services.Service> {
         val channel = Channel<Services.Service>()
-        CoroutineScope(SupervisorJob()).launch {
+        CoroutineScope((context ?: Dispatchers.Default) + SupervisorJob()).launch {
             coroutineScope {
                 for (service in builtIn) {
-                    launch(Dispatchers.IO) {
+                    launch(context ?: Dispatchers.IO) {
                         service.search()
                         channel.send(service)
 
@@ -116,15 +117,13 @@ class ServiceController(dependencies: Dependencies) {
         val autoConnect: Boolean?,
         val builtInServices: List<Services.Service>
     ) {
-        typealias ConcurrencyContext = (suspend () -> Unit) -> Unit
-
         companion object {
-            fun live() = Dependencies(
-                context = App.shared,
+            fun live(context: Context = App.shared) = Dependencies(
+                context = context,
                 autoConnect = null,
                 builtInServices = listOf(
-                    SmokeService("Simulated Service LALA", App.shared),
-                    SmokeService("Simulated Service LONES", App.shared)
+                    SmokeService("Simulated Service LALA", context),
+                    SmokeService("Simulated Service LONES", context)
                 )
             )
         }

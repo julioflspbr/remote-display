@@ -16,10 +16,13 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextDisplaysCharacters() {
+		// given
 		let sut = DisplayViewModel()
 
+		// when
 		sut.setText("Hello")
 
+		// then
 		#expect(sut.display.lines[0].cells[0] == .char("H"))
 		#expect(sut.display.lines[0].cells[1] == .char("e"))
 		#expect(sut.display.lines[0].cells[2] == .char("l"))
@@ -30,19 +33,25 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextPlacesCursor() {
+		// given
 		let sut = DisplayViewModel()
 
+		// when
 		sut.setText("abc")
 
+		// then
 		#expect(sut.display.lines[0].cells[3] == .cursor)
 	}
 
 	@Test
 	func setTextHandlesNewlines() {
+		// given
 		let sut = DisplayViewModel()
 
+		// when
 		sut.setText("abc\ndef")
 
+		// then
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
 		#expect(sut.display.lines[0].cells[2] == .char("c"))
@@ -56,11 +65,14 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextResetsPreviousContents() {
+		// given
 		let sut = DisplayViewModel()
 
+		// when
 		sut.setText("first")
 		sut.setText("second")
 
+		// then
 		#expect(sut.display.lines[0].cells[0] == .char("s"))
 		#expect(sut.display.lines[0].cells[1] == .char("e"))
 		#expect(sut.display.lines[0].cells[2] == .char("c"))
@@ -72,10 +84,13 @@ struct DisplayViewModelTests {
 
 	@Test
 	func setTextIgnoresNonASCIICharacters() {
+		// given
 		let sut = DisplayViewModel()
 
+		// when
 		sut.setText("a😀b")
 
+		// then
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
 		#expect(sut.display.lines[0].cells[2] == .cursor)
@@ -84,12 +99,20 @@ struct DisplayViewModelTests {
 	// MARK: - insertText
 
 	@Test
-	func insertTextAppendsCharacters() {
+	func insertTextAppendsCharacters() async throws {
+		//given
 		let sut = DisplayViewModel()
+		let keyboardController = KeyboardController()
+		let subscription = sut.startListeningToKeyboard(in: keyboardController)
+		try await self.advanceToNextFrame()
 
+		// when
 		sut.setText("Hello")
-		sut.receive(action: .text(" world"))
+		keyboardController.insertText(" world")
+		sut.stopListeningToKeyboard()
+		try await subscription?.waitForTermination()
 
+		// then
 		#expect(sut.display.lines[0].cells[0] == .char("H"))
 		#expect(sut.display.lines[0].cells[5] == .char(" "))
 		#expect(sut.display.lines[0].cells[10] == .char("d"))
@@ -97,12 +120,20 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func insertTextHandlesNewlines() {
+	func insertTextHandlesNewlines() async throws {
+		// given
 		let sut = DisplayViewModel()
+		let keyboardController = KeyboardController()
+		let subscription = sut.startListeningToKeyboard(in: keyboardController)
+		try await self.advanceToNextFrame()
 
+		// when
 		sut.setText("abc")
-		sut.receive(action: .text("\ndef"))
+		keyboardController.insertText("\ndef")
+		sut.stopListeningToKeyboard()
+		try await subscription?.waitForTermination()
 
+		// then
 		#expect(sut.display.lines[0].cells[3] == .blank)
 		#expect(sut.display.lines[1].cells[0] == .char("d"))
 		#expect(sut.display.lines[1].cells[1] == .char("e"))
@@ -111,12 +142,20 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func insertTextIgnoresNonASCIICharacters() {
+	func insertTextIgnoresNonASCIICharacters() async throws {
+		// given
 		let sut = DisplayViewModel()
+		let keyboardController = KeyboardController()
+		let subscription = sut.startListeningToKeyboard(in: keyboardController)
+		try await self.advanceToNextFrame()
 
+		// when
 		sut.setText("ab")
-		sut.receive(action: .text("😀cd"))
+		keyboardController.insertText("😀cd")
+		sut.stopListeningToKeyboard()
+		try await subscription?.waitForTermination()
 
+		// then
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
 		#expect(sut.display.lines[0].cells[2] == .char("c"))
@@ -127,39 +166,65 @@ struct DisplayViewModelTests {
 	// MARK: - deleteBackward
 
 	@Test
-	func deleteBackwardRemovesCharacter() {
+	func deleteBackwardRemovesCharacter() async throws {
+		// given
 		let sut = DisplayViewModel()
+		let keyboardController = KeyboardController()
+		let subscription = sut.startListeningToKeyboard(in: keyboardController)
+		try await self.advanceToNextFrame()
 
+		// when
 		sut.setText("abc")
-		sut.receive(action: .backspace)
+		keyboardController.deleteBackward()
+		sut.stopListeningToKeyboard()
+		try await subscription?.waitForTermination()
 
+		// theb
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
 		#expect(sut.display.lines[0].cells[2] == .cursor)
 	}
 
 	@Test
-	func deleteBackwardRemovesAllCharacters() {
+	func deleteBackwardRemovesAllCharacters() async throws {
+		// given
 		let sut = DisplayViewModel()
+		let keyboardController = KeyboardController()
+		let subscription = sut.startListeningToKeyboard(in: keyboardController)
+		try await self.advanceToNextFrame()
 
+		// when
 		sut.setText("abc")
-		sut.receive(action: .backspace)
-		sut.receive(action: .backspace)
-		sut.receive(action: .backspace)
+		keyboardController.deleteBackward()
+		keyboardController.deleteBackward()
+		keyboardController.deleteBackward()
 
+		sut.stopListeningToKeyboard()
+		try await subscription?.waitForTermination()
+
+		// then
 		#expect(sut.display.lines[0].cells[0] == .cursor)
 	}
 
 	@Test
-	func deleteBackwardAcrossNewline() {
+	func deleteBackwardAcrossNewline() async throws {
+		// given
 		let sut = DisplayViewModel()
+		let keyboardController = KeyboardController()
+		let subscription = sut.startListeningToKeyboard(in: keyboardController)
+		try await self.advanceToNextFrame()
 
+		// when
 		sut.setText("abc\ndef")
-		sut.receive(action: .backspace)
-		sut.receive(action: .backspace)
-		sut.receive(action: .backspace)
-		sut.receive(action: .backspace)
+		keyboardController.deleteBackward()
+		keyboardController.deleteBackward()
+		keyboardController.deleteBackward()
+		keyboardController.deleteBackward()
 
+		sut.stopListeningToKeyboard()
+		try await subscription?.waitForTermination()
+
+		// then
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
 		#expect(sut.display.lines[0].cells[2] == .char("c"))
@@ -169,16 +234,25 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func deleteBackwardAcrossLineBreak() {
+	func deleteBackwardAcrossLineBreak() async throws {
+		// given
 		let sut = DisplayViewModel()
+		let keyboardController = KeyboardController()
+		let subscription = sut.startListeningToKeyboard(in: keyboardController)
+		try await self.advanceToNextFrame()
 
+		// when
 		// i is the 9th char that goes to the next line
 		sut.setText("abcdefghijk")
-		sut.receive(action: .backspace)
-		sut.receive(action: .backspace)
-		sut.receive(action: .backspace)
-		sut.receive(action: .backspace)
+		keyboardController.deleteBackward()
+		keyboardController.deleteBackward()
+		keyboardController.deleteBackward()
+		keyboardController.deleteBackward()
 
+		sut.stopListeningToKeyboard()
+		try await subscription?.waitForTermination()
+
+		// then
 		#expect(sut.display.lines[0].cells[4] == .char("e"))
 		#expect(sut.display.lines[0].cells[5] == .char("f"))
 		#expect(sut.display.lines[0].cells[6] == .char("g"))
@@ -188,15 +262,37 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func deleteBackwardRemovesNewline() {
+	func deleteBackwardRemovesNewline() async throws {
+		// given
 		let sut = DisplayViewModel()
+		let keyboardController = KeyboardController()
+		let subscription = sut.startListeningToKeyboard(in: keyboardController)
+		try await self.advanceToNextFrame()
 
+		// when
 		sut.setText("abc\n")
-		sut.receive(action: .backspace)
+		keyboardController.deleteBackward()
+		sut.stopListeningToKeyboard()
+		try await subscription?.waitForTermination()
 
+		// then
 		#expect(sut.display.lines[0].cells[0] == .char("a"))
 		#expect(sut.display.lines[0].cells[1] == .char("b"))
 		#expect(sut.display.lines[0].cells[2] == .char("c"))
 		#expect(sut.display.lines[0].cells[3] == .cursor)
+	}
+
+	private func advanceToNextFrame() async throws {
+		try await Task.sleep(for: .milliseconds(1))
+	}
+}
+
+private extension Task {
+	func waitForTermination() async throws {
+		do {
+			_ = try await self.value
+		} catch is CancellationError {
+			// terminated, just let it go
+		}
 	}
 }

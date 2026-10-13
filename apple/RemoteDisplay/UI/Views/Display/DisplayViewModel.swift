@@ -8,20 +8,28 @@
 import SwiftUI
 
 @Observable @MainActor
-final class DisplayViewModel: Keyboard.Client {
-	let id	= UUID()
-	private weak var keyboardController: KeyboardController?
+final class DisplayViewModel {
+	private var keyboardActionTask: Task<Void, Never>?
 	private var positions: [Int] = [] // current position for each line
 
 	private(set) var display = Display()
 
-	func setKeyboardController(_ controller: KeyboardController?) {
-		controller?.subscribe(client: self)
-		self.keyboardController = controller
+	@discardableResult
+	func startListeningToKeyboard(in controller: KeyboardController?) -> Task<Void, Never>? {
+		guard let controller else {
+			return nil
+		}
+		self.keyboardActionTask = Task {
+			for await keyboardAction in controller.actions {
+				self.receive(action: keyboardAction)
+			}
+		}
+		return self.keyboardActionTask
 	}
 
-	func unsetKeyboardController() {
-		self.keyboardController?.unsubscribe(client: self)
+	func stopListeningToKeyboard() {
+		self.keyboardActionTask?.cancel()
+		self.keyboardActionTask = nil
 	}
 
 	func setText(_ text: String) {
@@ -30,7 +38,7 @@ final class DisplayViewModel: Keyboard.Client {
 		self.insertText(text)
 	}
 
-	func receive(action: Keyboard.Action) {
+	private func receive(action: Keyboard.Action) {
 		switch action {
 			case let .text(text):
 				self.insertText(text)
