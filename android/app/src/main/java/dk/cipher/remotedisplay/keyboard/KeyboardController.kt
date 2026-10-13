@@ -1,10 +1,11 @@
 package dk.cipher.remotedisplay.keyboard
 
 import dk.cipher.remotedisplay.keyboard.Keyboard.Action
+import dk.cipher.remotedisplay.utils.ClosingChannel
 
 class KeyboardController {
     private var service: Keyboard.Service? = null
-    private var subscriptions = mutableSetOf<Keyboard.Client>()
+    private var subscriptions = mutableSetOf<ClosingChannel<Action>>()
     private var isShowingKeyboard = false
     private var _canShowKeyboard = false
     var canShowKeyboard: Boolean
@@ -15,6 +16,15 @@ class KeyboardController {
                 this.service?.hideKeyboard()
                 this.isShowingKeyboard = false
             }
+        }
+
+    val actions: ClosingChannel<Action>
+        get() {
+            val channel = ClosingChannel<Action> { channel ->
+                this.subscriptions.remove(channel)
+            }
+            this.subscriptions.add(channel)
+            return channel
         }
 
     fun toggleKeyboard() {
@@ -35,26 +45,18 @@ class KeyboardController {
         this.service = service
     }
 
-    fun subscribe(client: Keyboard.Client) {
-        this.subscriptions.add(client)
-    }
-
-    fun unsubscribe(client: Keyboard.Client) {
-        this.subscriptions.remove(client)
-    }
-
-    fun insertText(text: String) {
+    suspend fun insertText(text: String) {
         if (text.isEmpty()) {
             return
         }
         for (client in this.subscriptions) {
-            client.receive(Action.Text(text))
+            client.send(Action.Text(text))
         }
     }
 
-    fun deleteBackward() {
+    suspend fun deleteBackward() {
         for (client in this.subscriptions) {
-            client.receive(Action.Backspace)
+            client.send(Action.Backspace)
         }
     }
 }

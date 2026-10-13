@@ -26,9 +26,8 @@ import dk.cipher.remotedisplay.services.preview
 import dk.cipher.remotedisplay.ui.views.display.DisplayView
 import dk.cipher.remotedisplay.ui.views.services.ServicesView
 import dk.cipher.remotedisplay.utils.previewBackground
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class ContentView: Keyboard.Service, FrameLayout {
     data class Dependencies(
@@ -70,14 +69,14 @@ class ContentView: Keyboard.Service, FrameLayout {
             override fun sendKeyEvent(event: KeyEvent): Boolean {
                 if (event.action == KeyEvent.ACTION_DOWN) {
                     if (event.keyCode == KeyEvent.KEYCODE_DEL) {
-                        CoroutineScope(Dispatchers.IO).launch {
+                        runBlocking(Dispatchers.IO) {
                             keyboardController?.deleteBackward()
                         }
                         return true
                     }
                     val unicode = event.getUnicodeChar(event.metaState)
                     if (unicode != 0) {
-                        CoroutineScope(Dispatchers.IO).launch {
+                        runBlocking(Dispatchers.IO) {
                             val char = unicode.toChar()
                             keyboardController?.insertText(char.toString())
                         }

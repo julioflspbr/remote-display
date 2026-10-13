@@ -116,15 +116,13 @@ class ServiceController(dependencies: Dependencies) {
         val autoConnect: Boolean?,
         val builtInServices: List<Services.Service>
     ) {
-        typealias ConcurrencyContext = (suspend () -> Unit) -> Unit
-
         companion object {
-            fun live() = Dependencies(
-                context = App.shared,
+            fun live(context: Context = App.shared) = Dependencies(
+                context = context,
                 autoConnect = null,
                 builtInServices = listOf(
-                    SmokeService("Simulated Service LALA", App.shared),
-                    SmokeService("Simulated Service LONES", App.shared)
+                    SmokeService("Simulated Service LALA", context),
+                    SmokeService("Simulated Service LONES", context)
                 )
             )
         }

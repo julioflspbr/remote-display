@@ -8,19 +8,18 @@ import dk.cipher.remotedisplay.keyboard.KeyboardController
 import dk.cipher.remotedisplay.ui.models.Cell
 import dk.cipher.remotedisplay.ui.models.Display
 import dk.cipher.remotedisplay.ui.models.Line
+import dk.cipher.remotedisplay.utils.ClosingChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 import kotlin.text.iterator
 
-class DisplayViewModel(val keyboardController: KeyboardController): ViewModel(), Keyboard.Client {
-    companion object {
-        fun build(keyboardController: KeyboardController) =
-            viewModelFactory {
-                initializer {
-                    DisplayViewModel(keyboardController)
-                }
-            }
-    }
-
+class DisplayViewModel: ViewModel() {
     var display = Display()
+        private set
+
+    private var actions: ClosingChannel<Keyboard.Action>? = null
     private val positions = mutableListOf<Int>()
     private var currentCell: Cell
         get() {
@@ -30,15 +29,21 @@ class DisplayViewModel(val keyboardController: KeyboardController): ViewModel(),
             display.lines[positions.lastIndex].cells[positions.last()].value = newValue
         }
 
-    init {
-        this.keyboardController.subscribe(this)
+    fun startListeningToKeyboard(controller: KeyboardController, context: CoroutineContext = Dispatchers.Default) {
+        val keyboardActions = controller.actions
+        this.actions = keyboardActions
+        CoroutineScope(context).launch {
+            for (action in keyboardActions) {
+                receive(action)
+            }
+        }
     }
 
-    override fun onCleared() {
-        this.keyboardController.unsubscribe(this)
+    fun stopListeningToKeyboard() {
+        this.actions?.close()
     }
 
-    override fun receive(action: Keyboard.Action) {
+    private fun receive(action: Keyboard.Action) {
         when (action) {
             is Keyboard.Action.Text -> this.insertText(action.text)
             is Keyboard.Action.Backspace -> this.deleteBackward()

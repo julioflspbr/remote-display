@@ -10,8 +10,4 @@ object Keyboard {
         fun showKeyboard()
         fun hideKeyboard()
     }
-
-    interface Client {
-        fun receive(action: Action)
-    }
 }
