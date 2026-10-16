@@ -14,4 +14,10 @@ extension Image {
 		static let wifi = Image(systemName: "wifi")
 		static let cloud = Image(systemName: "cloud")
 	}
+
+	enum Alert {
+		static let empty = Image(systemName: "bell")
+		static let one = Image(systemName: "bell.fill")
+		static let many = Image(systemName: "bell.badge.fill")
+	}
 }

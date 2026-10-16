@@ -23,5 +23,9 @@ extension App {
 				fatalError(error.localizedDescription)
 			}
 		}
+
+		static func alertController() -> AlertController {
+			AlertController()
+		}
 	}
 }
