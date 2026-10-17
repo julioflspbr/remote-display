@@ -16,9 +16,9 @@ final class ServiceController {
 
 	private var currentIndex = 0
 
-	init(dependencies: Dependencies) throws(NoBuiltInServiceError) {
-		guard !dependencies.builtInServices.isEmpty else {
-			throw NoBuiltInServiceError()
+	init(dependencies: Dependencies) {
+		if dependencies.builtInServices.isEmpty {
+			dependencies.noServicesErrorHandler()
 		}
 		self.builtIn = dependencies.builtInServices
 		if let autoConnect = dependencies.autoConnect {

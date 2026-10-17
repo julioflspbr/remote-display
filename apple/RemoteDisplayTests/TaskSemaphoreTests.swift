@@ -28,18 +28,18 @@ final class TestSemaphoreTests {
 	@Test
 	func semaphoreFailsOnDoubleWait() async throws {
 		// given
-		let sut = TaskSemaphore()
 		let wouldHaveHalted = Mutex<Bool>(false)
-
-		// when
-		let doubleWaitHandler: (@Sendable () -> Void) = {
+		let dependencies = TaskSemaphore.Dependencies {
 			wouldHaveHalted << true
 		}
+		let sut = TaskSemaphore(dependencies: dependencies)
+
+		// when
 		let task1 = Task {
-			await sut.wait(doubleWaitErrorHandler: doubleWaitHandler)
+			await sut.wait()
 		}
 		let task2 = Task {
-			await sut.wait(doubleWaitErrorHandler: doubleWaitHandler)
+			await sut.wait()
 		}
 		// let tasks spool up
 		try await Task.sleep(for: .milliseconds(1))

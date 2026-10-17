@@ -10,6 +10,7 @@ extension ServiceController {
 	struct Dependencies {
 		let builtInServices: [any Services.Service]
 		let autoConnect: Bool?
+		let noServicesErrorHandler: () -> Void
 	}
 }
 
@@ -20,6 +21,9 @@ extension ServiceController.Dependencies {
 			Services.SmokeService(name: "Simulated Service LALA"),
 			Services.SmokeService(name: "Simulated Service LONES")
 		],
-		autoConnect: nil
+		autoConnect: nil,
+		noServicesErrorHandler: {
+			fatalError("Please inform at least one display service to send messages to.")
+		}
 	)
 }

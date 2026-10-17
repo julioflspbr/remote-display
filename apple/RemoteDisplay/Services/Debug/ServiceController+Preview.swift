@@ -16,18 +16,14 @@ extension ServiceController {
 		let controllerMutex = Mutex<ServiceController?>(nil)
 		DispatchQueue.global().async {
 			Task { @Sendable in
-				do {
-					let controller = try await ServiceController(
-						dependencies: .preview(
-							services: services.enumerated().map { i, it in
-								Services.PreviewService(id: i, icon: it.icon, status: it.status)
-							}
-						)
+				let controller = await ServiceController(
+					dependencies: .preview(
+						services: services.enumerated().map { i, it in
+							Services.PreviewService(id: i, icon: it.icon, status: it.status)
+						}
 					)
-					controllerMutex << controller
-				} catch {
-					fatalError("Error while trying to preview: \(error)")
-				}
+				)
+				controllerMutex << controller
 				semaphore.signal()
 			}
 		}
@@ -40,7 +36,8 @@ private extension ServiceController.Dependencies {
 	static func preview(services: [Services.PreviewService]) -> ServiceController.Dependencies {
 		ServiceController.Dependencies(
 			builtInServices: services,
-			autoConnect: nil
+			autoConnect: nil,
+			noServicesErrorHandler: { assertionFailure("Provide at least one service") }
 		)
 	}
 }
