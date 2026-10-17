@@ -17,11 +17,7 @@ extension App {
 		}
 
 		static func serviceController() async -> ServiceController {
-			do {
-				return try await ServiceController(dependencies: .live)
-			} catch {
-				fatalError(error.localizedDescription)
-			}
+			await ServiceController(dependencies: .live)
 		}
 
 		static func alertController() -> AlertController {

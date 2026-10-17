@@ -8,21 +8,22 @@
 import Synchronization
 
 actor TaskSemaphore {
-	// TODO: make Mutex operator accept assignment
+	private let dependencies: Dependencies
 	private var isSignaled = false
 	private var continuation: CheckedContinuation<Void, Never>?
 
-	func wait(doubleWaitErrorHandler: (() -> Void)? = nil) async {
+	init(dependencies: Dependencies = .live) {
+		self.dependencies = dependencies
+	}
+
+
+	func wait() async {
 		guard !isSignaled else {
 			return
 		}
 		guard continuation == nil else {
-			if let doubleWaitErrorHandler {
-				doubleWaitErrorHandler()
-				return
-			} else {
-				fatalError("The semaphore is busy")
-			}
+			self.dependencies.doubleWaitErrorHandler()
+			return
 		}
 		self.isSignaled = false
 		await withTaskCancellationHandler {
@@ -44,5 +45,15 @@ actor TaskSemaphore {
 
 	private func setContinuation(_ continuation: CheckedContinuation<Void, Never>?) {
 		self.continuation = continuation
+	}
+}
+
+extension TaskSemaphore {
+	struct Dependencies: Sendable {
+		let doubleWaitErrorHandler: @Sendable () -> Void
+
+		static let live = Dependencies {
+			fatalError("The semaphore is busy")
+		}
 	}
 }

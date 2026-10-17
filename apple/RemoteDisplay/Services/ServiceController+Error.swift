@@ -11,13 +11,6 @@ extension ServiceController {
 	protocol Error: LocalizedError, Equatable {
 	}
 
-	// TODO: we probably want it to be a fatal error
-	final class NoBuiltInServiceError: Error {
-		var errorDescription: String? {
-			String(localized: .errorDescriptionNoBuiltIn)
-		}
-	}
-
 	final class ChangeServiceWhileConnectedError: Error {
 		var errorDescription: String? {
 			String(localized: .errorDescriptionChangeWhileConnected)
