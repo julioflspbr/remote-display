@@ -10,6 +10,7 @@ import SwiftUI
 struct ServicesView: View {
 	@State private var viewModel = ServicesViewModel()
 	@Environment(\.serviceController) private var serviceController
+	@Environment(\.alertController) private var alertController
 
 	var body: some View {
 		VStack {
@@ -23,7 +24,7 @@ struct ServicesView: View {
 				do {
 					try await self.viewModel.setServiceController(self.serviceController)
 				} catch {
-					assertionFailure("TODO: catch error with future AlertController")
+					await self.alertController?.handle(error: error)
 				}
 			}
 		}

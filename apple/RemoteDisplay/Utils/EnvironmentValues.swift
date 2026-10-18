@@ -15,6 +15,10 @@ struct ServiceControllerKey: EnvironmentKey {
 	static let defaultValue: ServiceController? = nil
 }
 
+struct AlertControllerKey: EnvironmentKey {
+	static let defaultValue: AlertController? = nil
+}
+
 extension EnvironmentValues {
 	var keyboardController: KeyboardController? {
 		get { self[KeyboarControllerKey.self] }
@@ -24,5 +28,10 @@ extension EnvironmentValues {
 	var serviceController: ServiceController? {
 		get { self[ServiceControllerKey.self] }
 		set { self[ServiceControllerKey.self] = newValue }
+	}
+
+	var alertController: AlertController? {
+		get { self[AlertControllerKey.self] }
+		set { self[AlertControllerKey.self] = newValue }
 	}
 }

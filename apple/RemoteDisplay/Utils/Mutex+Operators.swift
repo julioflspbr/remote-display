@@ -7,14 +7,14 @@
 
 import Synchronization
 
-prefix operator *
 postfix operator >>
-extension Mutex {
-	static prefix func * (mutex: borrowing Mutex<Value>) -> Value {
-		mutex.withLock{ it in it }
-	}
-
+extension Mutex where Value: Sendable {
 	static postfix func >> (mutex: borrowing Mutex<Value>) -> Value {
-		mutex.withLock{ it in it }
+		mutex.withLock { it in it }
+	}
+	static func << (mutex: borrowing Mutex<Value>, newValue: Value) {
+		mutex.withLock{ it in
+			it = newValue
+		}
 	}
 }

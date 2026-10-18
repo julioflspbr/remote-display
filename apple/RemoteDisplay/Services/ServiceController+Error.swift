@@ -11,12 +11,6 @@ extension ServiceController {
 	protocol Error: LocalizedError, Equatable {
 	}
 
-	final class NoBuiltInServiceError: Error {
-		var errorDescription: String? {
-			String(localized: .errorDescriptionNoBuiltIn)
-		}
-	}
-
 	final class ChangeServiceWhileConnectedError: Error {
 		var errorDescription: String? {
 			String(localized: .errorDescriptionChangeWhileConnected)

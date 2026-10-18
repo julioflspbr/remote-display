@@ -18,6 +18,7 @@ struct ContentView: View {
 					.padding(.horizontal)
 			}
 			Spacer()
+			AlertView()
 		}
 		.padding()
 		.shadow(color: .black.opacity(0.2), radius: 0, x: 2, y: 2)
@@ -35,4 +36,5 @@ struct ContentView: View {
 			(.Service.cloud, .available),
 			(.Service.wifi, .connecting)
 		]))
+		.environment(\.alertController, AlertController())
 }

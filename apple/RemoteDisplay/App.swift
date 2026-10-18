@@ -11,6 +11,7 @@ import SwiftUI
 struct App: SwiftUI.App {
 	@State private var keyboardController: KeyboardController?
 	@State private var serviceController: ServiceController?
+	@State private var alertController: AlertController?
 
 	var body: some Scene {
 		WindowGroup {
@@ -21,8 +22,12 @@ struct App: SwiftUI.App {
 				.task {
 					self.keyboardController = Dependencies.keyboardController()
 				}
+				.task {
+					self.alertController = Dependencies.alertController()
+				}
 				.environment(\.keyboardController, keyboardController)
 				.environment(\.serviceController, serviceController)
+				.environment(\.alertController, alertController)
 		}
 	}
 }

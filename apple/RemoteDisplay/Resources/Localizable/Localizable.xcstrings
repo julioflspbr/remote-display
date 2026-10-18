@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "ERROR_ACTION_TITLE_OK" : {
+      "comment" : "Title for a generic actions for errors that don’t contain their own actions",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Understood"
+          }
+        }
+      }
+    },
     "ERROR_DESCRIPTION_CHANGE_WHILE_CONNECTED" : {
       "comment" : "Error description for when there is an attempt to switch services, but the current service is still connected",
       "extractionState" : "manual",
