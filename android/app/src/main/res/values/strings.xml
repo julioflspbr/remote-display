@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">RemoteDisplay</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="action_button_ok">OK</string>
 
     <!-- Error Descriptions -->
     <string name="error_description_change_while_connected">Cannot change the service while connected.</string>
