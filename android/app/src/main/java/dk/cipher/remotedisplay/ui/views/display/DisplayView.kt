@@ -59,8 +59,7 @@ private fun LineView(line: Line) {
     }
 }
 
-@Preview(widthDp = 590, heightDp = 115)
-@Composable
+@Composable @Preview(widthDp = 590, heightDp = 115)
 private fun DisplayPreview() {
     DisplayView(
         text = "Ola\nNatalia", KeyboardController(),

@@ -5,10 +5,8 @@ import dk.cipher.remotedisplay.keyboard.KeyboardController
 import dk.cipher.remotedisplay.utils.ClosingChannel
 import junit.framework.TestCase
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import kotlin.coroutines.CoroutineContext
@@ -127,11 +125,10 @@ class KeyboardControllerTest {
     private class MockKeyboardClient {
         var actions = mutableListOf<Keyboard.Action>()
             private set
-
         val actionStream: ClosingChannel<Keyboard.Action>
 
         constructor(keyboardController: KeyboardController, context: CoroutineContext) {
-            this.actionStream = keyboardController.actions
+            this.actionStream = keyboardController.actions()
             CoroutineScope(context).launch {
                 for (action in actionStream) {
                     actions.add(action)

@@ -56,8 +56,7 @@ fun CharacterView(cell: Cell, modifier: Modifier = Modifier) {
     )
 }
 
-@Preview
-@Composable
+@Composable @Preview
 fun CharacterPreview() {
     CharacterView(
         cell = Cell.Cursor,

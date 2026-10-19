@@ -13,33 +13,29 @@ import dk.cipher.remotedisplay.App
 import kotlinx.coroutines.coroutineScope
 import kotlin.coroutines.CoroutineContext
 
-class ServiceController(dependencies: Dependencies) {
-    val builtIn = dependencies.builtInServices
+class ServiceController(private val dependencies: Dependencies) {
+    val builtIn = this.dependencies.builtInServices
     var autoConnect: Boolean
         get() = _autoConnect
         set(value) {
             _autoConnect = value
-            this.storage?.edit {
+            this.dependencies.storage?.edit {
                 putBoolean(AUTO_CONNECT_STORAGE_KEY, value)
             }
         }
-
     var status: Services.Status = Services.Status.Unavailable
         private set
-
-    private val storage: SharedPreferences?
     private var connectedIndex = 0
     private var _autoConnect: Boolean
 
     init {
         if (this.builtIn.isEmpty()) {
-            throw Services.NoBuiltInServiceError()
+            this.dependencies.noServicesErrorHandler()
         }
-        this.storage = dependencies.context?.getSystemService<SharedPreferences>()
-        if (dependencies.autoConnect != null) {
-            _autoConnect = dependencies.autoConnect
+        _autoConnect = if (this.dependencies.autoConnect != null) {
+            this.dependencies.autoConnect
         } else {
-            _autoConnect = this.storage?.getBoolean(AUTO_CONNECT_STORAGE_KEY, false) ?: false
+            this.dependencies.storage?.getBoolean(AUTO_CONNECT_STORAGE_KEY, false) ?: false
         }
     }
 
@@ -86,7 +82,7 @@ class ServiceController(dependencies: Dependencies) {
             throw Services.ChangeServiceWhileConnectedError()
         }
         this.connectedIndex = 0
-        return this.builtIn[this.connectedIndex]
+        return this.builtIn[0]
     }
 
     fun selectNextService(): Services.Service? {
@@ -113,19 +109,26 @@ class ServiceController(dependencies: Dependencies) {
     }
 
     data class Dependencies(
-        val context: Context?,
+        val storage: SharedPreferences?,
+        val builtInServices: List<Services.Service>,
         val autoConnect: Boolean?,
-        val builtInServices: List<Services.Service>
+        val noServicesErrorHandler: () -> Unit
     ) {
         companion object {
-            fun live(context: Context = App.shared) = Dependencies(
-                context = context,
-                autoConnect = null,
-                builtInServices = listOf(
-                    SmokeService("Simulated Service LALA", context),
-                    SmokeService("Simulated Service LONES", context)
+            fun live(): Dependencies {
+                val storage = App.shared.getSystemService<SharedPreferences>()
+                return Dependencies(
+                    storage = storage,
+                    builtInServices = listOf(
+                        SmokeService("Simulated Service LALA", storage),
+                        SmokeService("Simulated Service LONES", storage)
+                    ),
+                    autoConnect = null,
+                    noServicesErrorHandler = {
+                        error("Please inform at least one display service to send messages to.")
+                    }
                 )
-            )
+            }
         }
     }
 

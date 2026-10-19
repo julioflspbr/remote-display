@@ -10,6 +10,7 @@ run_tests
 # android
 *.iml
 .gradle/
+.kotlin/
 local.properties
 .idea/
 .DS_Store

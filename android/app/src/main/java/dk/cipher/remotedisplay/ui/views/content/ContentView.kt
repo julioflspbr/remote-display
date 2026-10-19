@@ -119,8 +119,7 @@ private fun ComposableContentView(dependencies: ContentView.Dependencies) {
     }
 }
 
-@Preview(widthDp = 915, heightDp = 412)
-@Composable
+@Composable @Preview(widthDp = 915, heightDp = 412)
 fun ContentPreview() {
     ComposableContentView(ContentView.Dependencies(
         keyboardController = KeyboardController(),

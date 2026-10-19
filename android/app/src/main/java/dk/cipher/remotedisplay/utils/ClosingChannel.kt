@@ -1,13 +1,12 @@
 package dk.cipher.remotedisplay.utils
 
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ChannelIterator
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 
 class ClosingChannel<T>(val onClose: (ClosingChannel<T>) -> Unit): ChannelIterator<T> {
     private var value: T? = null
-    private val channel: Channel<T> = Channel()
+    val channel: Channel<T> = Channel()
 
     suspend fun send(element: T) =
         this.channel.send(element)
@@ -30,5 +29,5 @@ class ClosingChannel<T>(val onClose: (ClosingChannel<T>) -> Unit): ChannelIterat
     }
 
     override fun next(): T =
-        this.value ?: throw IllegalStateException()
+        this.value ?: error("It is an error to call the next element when there are no more elements in the channel. Check hasNext() first.")
 }
