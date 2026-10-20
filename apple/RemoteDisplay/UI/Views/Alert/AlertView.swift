@@ -14,7 +14,7 @@ struct AlertView: View {
 	var body: some View {
 		AlertTextView(viewModel: $viewModel)
 			.onChange(of: alertController, initial: true) {
-				self.viewModel.startListningToErrors(in: alertController)
+				self.viewModel.startListeningToErrors(in: alertController)
 			}
 			.onDisappear {
 				self.viewModel.stopListeningToErrors()
@@ -35,7 +35,7 @@ private struct AlertTextView: View {
 
 				HStack(alignment: .center) {
 					ForEach(viewModel.actions) { action in
-						AlertActionButton(style: action.style, title: action.title, action: action.action)
+						AlertActionButton(action: action)
 					}
 				}
 			}
@@ -51,11 +51,11 @@ private struct AlertTextView: View {
 		let recoverySuggestion: String? = "And these are some suggestions of how to recover from this error."
 		let actions = [
 			Alert.Action(
-				title: LocalizedStringResource(stringLiteral: "Lalalones"),
+				title: "Lalalones",
 				style: .highlighted
 			),
 			Alert.Action(
-				title: LocalizedStringResource(stringLiteral: "Cancel"),
+				title: "Cancel",
 				style: .default
 			),
 			Alert.Action(

@@ -12,7 +12,7 @@ import Foundation
 @Suite @MainActor
 struct CharacterViewModelTests {
 	@Test
-	func characterBlink() async throws {
+	func `character blinks`() async throws {
 		// given
 		let sut = CharacterViewModel(blinkInterval: .milliseconds(50))
 
@@ -31,7 +31,7 @@ struct CharacterViewModelTests {
 	}
 
 	@Test
-	func characterSteady() async throws {
+	func `character is steady`() async throws {
 		// given
 		let sut =  CharacterViewModel(blinkInterval: .milliseconds(50))
 		sut.blink()

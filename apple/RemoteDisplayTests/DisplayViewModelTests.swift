@@ -15,7 +15,7 @@ struct DisplayViewModelTests {
 	// MARK: - setText
 
 	@Test
-	func setTextDisplaysCharacters() {
+	func `setText displays character`() {
 		// given
 		let sut = DisplayViewModel()
 
@@ -44,7 +44,7 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func setTextHandlesNewlines() {
+	func `setText handles new lines`() {
 		// given
 		let sut = DisplayViewModel()
 
@@ -64,7 +64,7 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func setTextResetsPreviousContents() {
+	func `setText resets previous contents`() {
 		// given
 		let sut = DisplayViewModel()
 
@@ -83,7 +83,7 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func setTextIgnoresNonASCIICharacters() {
+	func `setText ignores non-ASCII characters`() {
 		// given
 		let sut = DisplayViewModel()
 
@@ -99,7 +99,7 @@ struct DisplayViewModelTests {
 	// MARK: - insertText
 
 	@Test
-	func insertTextAppendsCharacters() async throws {
+	func `insertText appends characters`() async throws {
 		//given
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
@@ -120,7 +120,7 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func insertTextHandlesNewlines() async throws {
+	func `insertText handles new lines`() async throws {
 		// given
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
@@ -142,7 +142,7 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func insertTextIgnoresNonASCIICharacters() async throws {
+	func `insertText ignores non-ASCII characters`() async throws {
 		// given
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
@@ -166,7 +166,7 @@ struct DisplayViewModelTests {
 	// MARK: - deleteBackward
 
 	@Test
-	func deleteBackwardRemovesCharacter() async throws {
+	func `deleteBacward removes character`() async throws {
 		// given
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
@@ -186,7 +186,7 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func deleteBackwardRemovesAllCharacters() async throws {
+	func `deleteBacward removes all characters`() async throws {
 		// given
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
@@ -207,7 +207,7 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func deleteBackwardAcrossNewline() async throws {
+	func `deleteBackward across new line`() async throws {
 		// given
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
@@ -234,7 +234,7 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func deleteBackwardAcrossLineBreak() async throws {
+	func `deleteBackward across line break`() async throws {
 		// given
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()
@@ -262,7 +262,7 @@ struct DisplayViewModelTests {
 	}
 
 	@Test
-	func deleteBackwardRemovesNewline() async throws {
+	func `deleteBackward removes new line`() async throws {
 		// given
 		let sut = DisplayViewModel()
 		let keyboardController = KeyboardController()

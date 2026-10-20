@@ -17,7 +17,7 @@ enum Alert {
 
 		let title: LocalizedStringResource
 		let style: Style
-		var action: () async -> Void
+		let action: () async -> Void
 
 		// conformance to Identifiable
 		var id: String { title.key }

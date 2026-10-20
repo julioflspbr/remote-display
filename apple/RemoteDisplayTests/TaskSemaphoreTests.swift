@@ -11,7 +11,7 @@ import Synchronization
 
 final class TestSemaphoreTests {
 	@Test(.timeLimit(.minutes(1)))
-	func semaphoreReleasesWaitWhenSignaled() async {
+	func `semaphore releases wait when signaled`() async {
 		// given
 		let sut = TaskSemaphore()
 
@@ -26,7 +26,7 @@ final class TestSemaphoreTests {
 	}
 
 	@Test
-	func semaphoreFailsOnDoubleWait() async throws {
+	func `semaphore fails on double wait`() async throws {
 		// given
 		let wouldHaveHalted = Mutex<Bool>(false)
 		let dependencies = TaskSemaphore.Dependencies {
@@ -53,7 +53,7 @@ final class TestSemaphoreTests {
 	}
 
 	@Test(.timeLimit(.minutes(1)))
-	func semaphoreAcceptsDoubleSignal() async {
+	func `semaphore accepts double signal`() async {
 		// given
 		let sut = TaskSemaphore()
 

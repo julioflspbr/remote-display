@@ -9,5 +9,5 @@ import SwiftUI
 
 extension Font {
 	static let display: Font = .custom("NinePin - DGL", fixedSize: 50)
-	static let alert: Font = .system(size: 17)
+	static let alert: Font = .system(size: 20)
 }

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
 	var body: some View {
-		VStack {
+		VStack(spacing: 20) {
 			HStack(alignment: .top) {
 				ServicesView()
 					.padding(.horizontal)
@@ -17,14 +17,14 @@ struct ContentView: View {
 				ServicesView()
 					.padding(.horizontal)
 			}
-			Spacer()
 			AlertView()
+			Spacer()
 		}
 		.padding()
 		.shadow(color: .black.opacity(0.2), radius: 0, x: 2, y: 2)
 		.frame(maxWidth: .infinity, maxHeight: .infinity)
 		.background(Color.Display.displayBackground)
-    }
+	}
 }
 
 #Preview {

@@ -26,8 +26,8 @@ struct ServiceControllerTests {
 		#expect(hasHalted, "The controller should not allow initialisation without services")
 	}
 
-	@Test("no auto-connect does not trigger search and connection")
-	func noAutoConnect() async throws {
+	@Test
+	func `no auto-connect does not trigger search and connection`() async throws {
 		// given
 		let service = MockService(name: "service")
 
@@ -40,8 +40,8 @@ struct ServiceControllerTests {
 		#expect(!service.wasConnectCalled, "The controller should not start auto connection")
 	}
 
-	@Test("run auto-connect procedure")
-	func runAutoConnect() async throws {
+	@Test
+	func `run auto-connect procedure`() async throws {
 		// given
 		let unreachableService = MockService(name: "unreachable")
 		let reachableService = MockService(name: "reachable")
@@ -58,8 +58,8 @@ struct ServiceControllerTests {
 		#expect(reachableService.wasConnectCalled, "The service should have started auto connect")
 	}
 
-	@Test("search and find all available services")
-	func searchAndFindAllAvailableServices() async throws {
+	@Test
+	func `search and find all available services`() async throws {
 		// given
 		let sut = ServiceController(dependencies: .mock([
 			MockService(name: "A"), MockService(name: "B")
@@ -76,8 +76,8 @@ struct ServiceControllerTests {
 		#expect(sut.status == .available, "The Service Controller should mark itself as available, since at least one service is available")
 	}
 
-	@Test("controller is available when there is at least one available service")
-	func controllerIsAvailable() async throws {
+	@Test
+	func `controller is available when there is at least one available service`() async throws {
 		// given
 		let serviceA = MockService(name: "A")
 		let serviceB = MockService(name: "B")
@@ -92,8 +92,8 @@ struct ServiceControllerTests {
 		#expect(sut.status == .available, "The Service Controller should mark itself as available, since at least one service is available")
 	}
 
-	@Test("controller is unavailable when there are no available services")
-	func controllerIsUnavailable() async throws {
+	@Test
+	func `controller is unavailable when there are no available services`() async throws {
 		// given
 		let serviceA = MockService(name: "A")
 		let serviceB = MockService(name: "B")
@@ -108,8 +108,8 @@ struct ServiceControllerTests {
 		#expect(sut.status == .unavailable, "The Service Controller should mark itself as unavailable, since no service is available")
 	}
 
-	@Test("connecting to the chosen service")
-	func connectToChosenService() async throws {
+	@Test
+	func `connecting to the chosen service`() async throws {
 		// given
 		let serviceA = MockService(name: "A")
 		let serviceB = MockService(name: "B")
@@ -129,8 +129,8 @@ struct ServiceControllerTests {
 		#expect(sut.status == .connected)
 	}
 
-	@Test("select the next service when not connected")
-	func selectNextServiceWhenNotConnected() throws {
+	@Test
+	func `select the next service when not connected`() throws {
 		// given
 		let serviceA = MockService(name: "A")
 		let serviceB = MockService(name: "B")
@@ -148,8 +148,8 @@ struct ServiceControllerTests {
 		#expect(current == nil, "There is no next service available, so next service should return nil")
 	}
 
-	@Test("select the next service should fail because there is one service connected")
-	func selectNextServiceWhenConnected() async throws {
+	@Test
+	func `select the next service should fail because there is one service connected`() async throws {
 		// given
 		let mockService = MockService(name: "A")
 		let sut = ServiceController(dependencies: .mock([mockService]))
@@ -163,8 +163,8 @@ struct ServiceControllerTests {
 		}
 	}
 
-	@Test("select the first service when not connected")
-	func selectFirstServiceWhenNotConnected() throws {
+	@Test
+	func `select the first service when not connected`() throws {
 		// given
 		let serviceA = MockService(name: "A")
 		let serviceB = MockService(name: "B")
@@ -178,8 +178,8 @@ struct ServiceControllerTests {
 		#expect(current === serviceA, "The first service should be returned")
 	}
 
-	@Test("select the first service should fail because there is one service connected")
-	func selectFirstServiceWhenConnected() async throws {
+	@Test
+	func `select the first service should fail because there is one service connected`() async throws {
 		// given
 		let mockService = MockService(name: "A")
 		let sut = ServiceController(dependencies: .mock([mockService]))
@@ -193,8 +193,8 @@ struct ServiceControllerTests {
 		}
 	}
 
-	@Test("disconnecting the current service")
-	func disconnectFromCurrentService() async throws {
+	@Test
+	func `disconnecting the current service`() async throws {
 		// given
 		let mockService = MockService(name: "A")
 		let sut = ServiceController(dependencies: .mock([mockService]))
