@@ -51,7 +51,7 @@ fun AlertTextView(viewModel: AlertViewModel, modifier: Modifier = Modifier) {
             BasicText(
                 text = viewModel.message(),
                 style = TextStyle(
-                    fontSize = 17.sp,
+                    fontSize = 20.sp,
                     color = colorResource(R.color.character)
                 )
             )

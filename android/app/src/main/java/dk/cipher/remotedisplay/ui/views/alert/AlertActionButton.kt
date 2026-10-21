@@ -35,11 +35,11 @@ fun AlertActionButton(action: Action, modifier: Modifier = Modifier) {
             text = stringResource(action.title),
             style = TextStyle(
                 color = action.style.textColor(),
-                fontSize = 17.sp
+                fontSize = 20.sp
             ),
             modifier = Modifier
                 .background(style = action.style)
-                .padding(horizontal = 15.dp, vertical = 3.dp)
+                .padding(horizontal = 15.dp, vertical = 5.dp)
         )
     }
 }
@@ -67,7 +67,7 @@ private fun Modifier.background(style: Style): Modifier =
             )
     }
 
-@Composable @Preview(widthDp = 200, heightDp = 30)
+@Composable @Preview(widthDp = 200, heightDp = 40)
 private fun AlertActionButtonPreview() {
     Row(
         modifier = Modifier.previewBackground(),
