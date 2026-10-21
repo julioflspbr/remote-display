@@ -1,12 +1,10 @@
 package dk.cipher.remotedisplay.services
 
-import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.StringRes
 import androidx.core.content.edit
-import androidx.core.content.getSystemService
 import dk.cipher.remotedisplay.R
-import dk.cipher.remotedisplay.utils.Error
+import dk.cipher.remotedisplay.utils.LocalisedError
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
@@ -14,11 +12,9 @@ import kotlin.random.Random
 import kotlin.random.nextInt
 import kotlin.time.Duration.Companion.seconds
 
-class SmokeService(val name: String, context: Context): Services.Service {
+class SmokeService(val name: String, private val storage: SharedPreferences?): Services.Service {
     var delegate: Services.ServiceDelegate? = null
         private set
-
-    private val storage = context.getSystemService<SharedPreferences>()
     private var _simulateSearchFailure: Boolean
     var simulateSearchFailure: Boolean
         get() = _simulateSearchFailure
@@ -142,5 +138,5 @@ class SmokeService(val name: String, context: Context): Services.Service {
         private const val TIMEOUT_LIMIT = 4 // secs; smaller than max to simulate timeout
     }
 
-    class SimulationError(@StringRes messageStringResource: Int): Error(messageStringResource)
+    class SimulationError(@StringRes messageStringResource: Int): LocalisedError(messageStringResource)
 }

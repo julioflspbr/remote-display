@@ -3,4 +3,11 @@
     <string name="error_description_search_simulation">This is a test error: simulating search failure</string>
     <string name="error_description_connection_simulation">This is a test error: simulating connection failure</string>
     <string name="error_description_disconnection_simulation">This is a test error: simulating disconnection failure</string>
+    <!-- Previews -->
+    <string name="error_description_preview">This is an error description.</string>
+    <string name="error_failure_reason_preview">Followed by a possible error reason.</string>
+    <string name="error_recover_preview">And these are some suggestions of how to recover from this error.</string>
+    <string name="action_button_preview_try_again">Try again</string>
+    <string name="action_button_preview_lalalones">Lalalones</string>
+    <string name="action_button_preview_cancel">Cancel</string>
 </resources>

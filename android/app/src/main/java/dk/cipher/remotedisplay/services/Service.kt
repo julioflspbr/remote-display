@@ -1,6 +1,7 @@
 package dk.cipher.remotedisplay.services
 
-import dk.cipher.remotedisplay.utils.Error
+import androidx.annotation.StringRes
+import dk.cipher.remotedisplay.utils.LocalisedError
 import dk.cipher.remotedisplay.R
 
 object Services {
@@ -12,7 +13,7 @@ object Services {
         object Connected: Status
         object Disconnecting: Status
         object Disconnected: Status
-        data class Failure(val error: kotlin.Error): Status
+        data class Failure(val error: Throwable): Status
     }
 
     interface Service {
@@ -26,7 +27,8 @@ object Services {
     interface ServiceDelegate {
         fun serviceDidUpdateStatus(service: Service)
     }
-    class NoBuiltInServiceError: Error(R.string.error_description_no_built_in)
-    class ChangeServiceWhileConnectedError: Error(R.string.error_description_change_while_connected)
-    class ServiceControllerNotInitialisedError: Error(R.string.error_description_service_controller_not_initialized)
+    class ChangeServiceWhileConnectedError: LocalisedError(
+        errorDescription = R.string.error_description_change_while_connected,
+        recoverySuggestion =  R.string.error_recovery_suggestion_change_while_connected
+    )
 }

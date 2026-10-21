@@ -1,8 +1,6 @@
 package dk.cipher.remotedisplay.ui.views.display
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import dk.cipher.remotedisplay.keyboard.Keyboard
 import dk.cipher.remotedisplay.keyboard.KeyboardController
 import dk.cipher.remotedisplay.ui.models.Cell
@@ -18,7 +16,6 @@ import kotlin.text.iterator
 class DisplayViewModel: ViewModel() {
     var display = Display()
         private set
-
     private var actions: ClosingChannel<Keyboard.Action>? = null
     private val positions = mutableListOf<Int>()
     private var currentCell: Cell
@@ -30,10 +27,10 @@ class DisplayViewModel: ViewModel() {
         }
 
     fun startListeningToKeyboard(controller: KeyboardController, context: CoroutineContext = Dispatchers.Default) {
-        val keyboardActions = controller.actions
-        this.actions = keyboardActions
+        val actions = controller.actions()
+        this.actions = actions
         CoroutineScope(context).launch {
-            for (action in keyboardActions) {
+            for (action in actions) {
                 receive(action)
             }
         }

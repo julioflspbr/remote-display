@@ -3,6 +3,7 @@ package dk.cipher.remotedisplay
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import dk.cipher.remotedisplay.alert.AlertController
 import dk.cipher.remotedisplay.keyboard.KeyboardController
 import dk.cipher.remotedisplay.services.ServiceController
 import dk.cipher.remotedisplay.ui.views.content.ContentView
@@ -12,11 +13,14 @@ class App : ComponentActivity() {
         private set
     lateinit var serviceController: ServiceController
         private set
+    lateinit var alertController: AlertController
+        private set
 
     override fun onCreate(savedInstanceState: Bundle?) {
         shared = this
         this.keyboardController = Dependencies.keyboardController()
         this.serviceController = Dependencies.serviceController()
+        this.alertController = Dependencies.alertController()
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -25,7 +29,8 @@ class App : ComponentActivity() {
                 this,
                 ContentView.Dependencies(
                     keyboardController,
-                    serviceController
+                    serviceController,
+                    alertController
                 )
             )
         )
@@ -36,6 +41,7 @@ class App : ComponentActivity() {
             KeyboardController().apply { this.canShowKeyboard = true }
         fun serviceController() =
             ServiceController(ServiceController.Dependencies.live())
+        fun alertController() = AlertController()
     }
 
     companion object {

@@ -2,10 +2,12 @@ package dk.cipher.remotedisplay.keyboard
 
 import dk.cipher.remotedisplay.keyboard.Keyboard.Action
 import dk.cipher.remotedisplay.utils.ClosingChannel
+import dk.cipher.remotedisplay.utils.MulticastChannel
+import kotlinx.coroutines.channels.Channel
 
 class KeyboardController {
     private var service: Keyboard.Service? = null
-    private var subscriptions = mutableSetOf<ClosingChannel<Action>>()
+    private val multiChannel = MulticastChannel<Action>()
     private var isShowingKeyboard = false
     private var _canShowKeyboard = false
     var canShowKeyboard: Boolean
@@ -18,14 +20,8 @@ class KeyboardController {
             }
         }
 
-    val actions: ClosingChannel<Action>
-        get() {
-            val channel = ClosingChannel<Action> { channel ->
-                this.subscriptions.remove(channel)
-            }
-            this.subscriptions.add(channel)
-            return channel
-        }
+    fun actions(): ClosingChannel<Action> =
+        this.multiChannel.makeChannel()
 
     fun toggleKeyboard() {
         val service = this.service
@@ -49,14 +45,10 @@ class KeyboardController {
         if (text.isEmpty()) {
             return
         }
-        for (client in this.subscriptions) {
-            client.send(Action.Text(text))
-        }
+        this.multiChannel.send(Action.Text(text))
     }
 
     suspend fun deleteBackward() {
-        for (client in this.subscriptions) {
-            client.send(Action.Backspace)
-        }
+        this.multiChannel.send(Action.Backspace)
     }
 }

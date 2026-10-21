@@ -12,7 +12,8 @@ fun ServiceController.Companion.preview(services: List<Pair<Painter, Services.St
 
 private fun ServiceController.Dependencies.Companion.preview(services: List<ServiceWithIcon>) =
     ServiceController.Dependencies(
-        context = null,
+        storage = null,
+        builtInServices = services,
         autoConnect = null,
-        builtInServices = services
+        noServicesErrorHandler = {}
     )

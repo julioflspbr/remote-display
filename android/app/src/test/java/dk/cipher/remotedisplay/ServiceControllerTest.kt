@@ -1,6 +1,6 @@
 package dk.cipher.remotedisplay
 
-import androidx.test.core.app.ApplicationProvider
+import androidx.core.content.getSystemService
 import dk.cipher.remotedisplay.services.ServiceController
 import dk.cipher.remotedisplay.services.Services
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -14,14 +14,27 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 
 @RunWith(RobolectricTestRunner::class)
 class ServiceControllerTest {
     @Test
     fun `empty built-in services throw No Built-in Service error`() {
-        assertThrows(Services.NoBuiltInServiceError::class.java) {
-            ServiceController(buildServiceControllerDependencies())
+        // given
+        var hasHalted = false
+        val noServiceErrorHandler: () -> Unit = {
+            hasHalted = true
         }
+
+        // when
+        ServiceController(
+            buildServiceControllerDependencies(
+                noServicesErrorHandler = noServiceErrorHandler
+            )
+        )
+
+        // then
+        assertTrue("The controller should not allow initialisation without services", hasHalted)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -266,12 +279,14 @@ class ServiceControllerTest {
 
     private fun buildServiceControllerDependencies(
         builtInServices: List<Services.Service> = listOf(),
-        autoConnect: Boolean? = null)
-    : ServiceController.Dependencies =
+        autoConnect: Boolean? = null,
+        noServicesErrorHandler: () -> Unit = {}
+    ): ServiceController.Dependencies =
         ServiceController.Dependencies(
             builtInServices = builtInServices,
-            context = ApplicationProvider.getApplicationContext(),
-            autoConnect = autoConnect
+            storage = RuntimeEnvironment.getApplication().getSystemService(),
+            autoConnect = autoConnect,
+            noServicesErrorHandler = noServicesErrorHandler
         )
 }
 
