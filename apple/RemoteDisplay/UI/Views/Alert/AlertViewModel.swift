@@ -16,6 +16,12 @@ final class AlertViewModel {
 	@ObservationIgnored
 	private var handlingTask: Task<Void, Never>?
 
+	#if DEBUG
+	init(initialError: (any Error)? = nil) {
+		self.currentError = initialError
+	}
+	#endif
+
 	var isAlerting: Bool {
 		currentError != nil
 	}
@@ -80,12 +86,6 @@ final class AlertViewModel {
 		self.handlingTask?.cancel()
 		self.handlingTask = nil
 	}
-
-	#if DEBUG
-	func setCurrentError(_ currentError: any Error) {
-		self.currentError = currentError
-	}
-	#endif
 }
 
 @MainActor

@@ -12,10 +12,8 @@ struct ContentView: View {
 		VStack(spacing: 20) {
 			HStack(alignment: .top) {
 				ServicesView()
-					.padding(.horizontal)
 				DisplayView(text: "0123456789012345")
-				ServicesView()
-					.padding(.horizontal)
+				AlertBadgeButton()
 			}
 			AlertView()
 			Spacer()

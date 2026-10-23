@@ -65,8 +65,7 @@ private struct AlertTextView: View {
 		]
 	}
 
-	@Previewable @State var viewModel = AlertViewModel()
-	viewModel.setCurrentError(PreviewError())
+	@Previewable @State var viewModel = AlertViewModel(initialError: PreviewError())
 
 	return AlertTextView(viewModel: $viewModel)
 		.previewBackground()
@@ -77,8 +76,7 @@ private struct AlertTextView: View {
 		case error
 	}
 
-	@Previewable @State var viewModel = AlertViewModel()
-	viewModel.setCurrentError(Generic.error)
+	@Previewable @State var viewModel = AlertViewModel(initialError: Generic.error)
 
 	return AlertTextView(viewModel: $viewModel)
 		.previewBackground()
