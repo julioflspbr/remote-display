@@ -16,7 +16,7 @@ final class Subscriber<Value: Sendable>: Sendable {
 	}
 
 	@discardableResult
-	func subscribe(to stream: AsyncStream<Value>?) -> Task<Void, Never> {
+	func subscribe(to stream: (any AsyncSequence<Value, Never> & Sendable)?) -> Task<Void, Never> {
 		Task {
 			guard let stream else {
 				return

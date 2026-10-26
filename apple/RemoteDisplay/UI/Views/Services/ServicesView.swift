@@ -24,7 +24,7 @@ struct ServicesView: View {
 				do {
 					try await self.viewModel.setServiceController(self.serviceController)
 				} catch {
-					await self.alertController?.handle(error: error)
+					await self.alertController?.stack(error: error)
 				}
 			}
 		}
