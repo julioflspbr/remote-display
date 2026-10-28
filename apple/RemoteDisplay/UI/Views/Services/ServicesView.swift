@@ -15,8 +15,13 @@ struct ServicesView: View {
 	var body: some View {
 		VStack {
 			ForEach(viewModel.services) { service in
-				ServiceButton(image: service.icon, color: service.status.color, isTransient: service.status.isTransient)
-					.frame(width: 30, height: 30)
+				ServiceButton(
+					image: service.icon,
+					color: service.status.color,
+					isTransient: service.status.isTransient,
+					action: { viewModel.callToAction(for: service) }
+				)
+				.frame(width: 30, height: 30)
 			}
 		}
 		.onChange(of: serviceController, initial: true) {

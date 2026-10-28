@@ -11,14 +11,18 @@ struct ServiceButton: View {
 	let image: Image
 	let color: Color
 	let isTransient: Bool
+	let action: () -> Void
 
 	var body: some View {
-		if isTransient {
-			ServiceButtonContent(image: image, color: color)
-				.animation(.linear.repeatForever(autoreverses: true), value: color)
-		} else {
-			ServiceButtonContent(image: image, color: color)
+		Group {
+			if isTransient {
+				ServiceButtonContent(image: image, color: color)
+					.animation(.linear.repeatForever(autoreverses: true), value: color)
+			} else {
+				ServiceButtonContent(image: image, color: color)
+			}
 		}
+		.onTapGesture(perform: action)
 	}
 }
 
@@ -49,7 +53,7 @@ struct ServiceButtonContent: View {
 		let color: Color
 
 		var body: some View {
-			ServiceButton(image: image, color: color, isTransient: false)
+			ServiceButton(image: image, color: color, isTransient: false, action: {})
 		}
 	}
 
@@ -68,7 +72,7 @@ struct ServiceButtonContent: View {
 		}
 
 		var body: some View {
-			ServiceButton(image: image, color: current, isTransient: true)
+			ServiceButton(image: image, color: current, isTransient: true, action: {})
 				.onAppear {
 					current = colorTwo
 				}

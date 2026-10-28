@@ -10,7 +10,7 @@ import Synchronization
 
 @MainActor
 final class KeyboardController {
-	private let streamer = MulticastStreamer<Keyboard.Action>()
+	private let streamer = Multicast.Streamer<Keyboard.Action>()
 	private var service: (any Keyboard.Service)?
 	private var isShowingKeyboard = false
 
@@ -23,7 +23,7 @@ final class KeyboardController {
 		}
 	}
 
-	var actions: AsyncStream<Keyboard.Action> {
+	var actions: Multicast.Stream<Keyboard.Action> {
 		self.streamer.makeStream()
 	}
 
@@ -48,11 +48,11 @@ final class KeyboardController {
 		guard !text.isEmpty else {
 			return
 		}
-		self.streamer.send(.text(text))
+		self.streamer.send(value: .text(text))
 	}
 
 	func deleteBackward() {
-		self.streamer.send(.backspace)
+		self.streamer.send(value: .backspace)
 	}
 }
 

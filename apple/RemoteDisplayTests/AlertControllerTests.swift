@@ -12,11 +12,9 @@ final class AlertControllerTests {
 	@Test
 	func `errors sent to the controller are stored`() async throws {
 		// given
-		let sut = AlertController()
-		let countSubscriber = Subscriber<Int>()
-		let errorSubscriber = Subscriber<any Error>()
-		await countSubscriber.subscribe(to: sut.count)
-		await errorSubscriber.subscribe(to: sut.errors)
+		var sut: AlertController! = AlertController()
+		let countSubscription = await subscribe(to: sut.count)
+		let errorSubscription = await subscribe(to: sut.errors)
 
 		// when
 		await sut.stack(error: MockError.error1)
@@ -24,81 +22,84 @@ final class AlertControllerTests {
 		await sut.stack(error: MockError.error3)
 
 		// then
-		try await Task.waitForNextFrame()
-		try #require(countSubscriber.accumulated.count == 4, "Accumulated count did not accumulate properly")
-		#expect(countSubscriber.accumulated[0] == 0, "The initial count was not recorded")
-		#expect(countSubscriber.accumulated[1] == 1, "Error count 1 was not recorded")
-		#expect(countSubscriber.accumulated[2] == 2, "Error count 2 was not recorded")
-		#expect(countSubscriber.accumulated[3] == 3, "Error count 3 was not recorded")
+		sut = nil
+		let counter = await countSubscription.value
+		let errors = await errorSubscription.value
 
-		try #require(errorSubscriber.accumulated.count == 3, "Accumulated error count does not match the stacked errors")
-		#expect(errorSubscriber.accumulated[0] as? MockError == .error1, "The first accumulated error is not correct")
-		#expect(errorSubscriber.accumulated[1] as? MockError == .error2, "The second accumulated error is not correct")
-		#expect(errorSubscriber.accumulated[2] as? MockError == .error3, "The third accumulated error is not correct")
+		try #require(counter.count == 4, "Accumulated count did not accumulate properly")
+		#expect(counter[0] == 0, "The initial count was not recorded")
+		#expect(counter[1] == 1, "Error count 1 was not recorded")
+		#expect(counter[2] == 2, "Error count 2 was not recorded")
+		#expect(counter[3] == 3, "Error count 3 was not recorded")
+
+		try #require(errors.count == 3, "Accumulated error count does not match the stacked errors")
+		#expect(errors[0] as? MockError == .error1, "The first accumulated error is not correct")
+		#expect(errors[1] as? MockError == .error2, "The second accumulated error is not correct")
+		#expect(errors[2] as? MockError == .error3, "The third accumulated error is not correct")
 	}
 
 	@Test
 	func `late subscription get old stacked errors`() async throws {
 		// given
-		let sut = AlertController()
-		let countSubscriber = Subscriber<Int>()
-		let errorSubscriber = Subscriber<any Error>()
-		await countSubscriber.subscribe(to: sut.count)
+		var sut: AlertController! = AlertController()
+		let countSubscription = await subscribe(to: sut.count)
 
 		// when
 		await sut.stack(error: MockError.error1)
 		await sut.stack(error: MockError.error2)
 		await sut.stack(error: MockError.error3)
 
-		await errorSubscriber.subscribe(to: sut.errors)
+		let errorSubscription = await subscribe(to: sut.errors)
 
 		// then
 		try await Task.waitForNextFrame()
-		try #require(countSubscriber.accumulated.count == 4, "Accumulated count did not accumulate properly")
-		#expect(countSubscriber.accumulated[0] == 0, "The initial count was not recorded")
-		#expect(countSubscriber.accumulated[1] == 1, "Error count 1 was not recorded")
-		#expect(countSubscriber.accumulated[2] == 2, "Error count 2 was not recorded")
-		#expect(countSubscriber.accumulated[3] == 3, "Error count 3 was not recorded")
+		sut = nil
+		let counter = await countSubscription.value
+		let errors = await errorSubscription.value
 
-		try #require(errorSubscriber.accumulated.count == 3, "Accumulated error count does not match the stacked errors")
-		#expect(errorSubscriber.accumulated[0] as? MockError == .error3, "The first accumulated error is not correct")
-		#expect(errorSubscriber.accumulated[1] as? MockError == .error2, "The second accumulated error is not correct")
-		#expect(errorSubscriber.accumulated[2] as? MockError == .error1, "The third accumulated error is not correct")
+		try #require(counter.count == 4, "Accumulated count did not accumulate properly")
+		#expect(counter[0] == 0, "The initial count was not recorded")
+		#expect(counter[1] == 1, "Error count 1 was not recorded")
+		#expect(counter[2] == 2, "Error count 2 was not recorded")
+		#expect(counter[3] == 3, "Error count 3 was not recorded")
+
+		try #require(errors.count == 3, "Accumulated error count does not match the stacked errors")
+		#expect(errors[0] as? MockError == .error3, "The first accumulated error is not correct")
+		#expect(errors[1] as? MockError == .error2, "The second accumulated error is not correct")
+		#expect(errors[2] as? MockError == .error1, "The third accumulated error is not correct")
 	}
 
 	@Test
 	func `handled error get removed from the stack`() async throws {
 		// given
-		let sut = AlertController()
-		let countSubscriber = Subscriber<Int>()
-		let errorSubscriber = Subscriber<any Error>()
-
+		var sut: AlertController! = AlertController()
 		await sut.stack(error: MockError.error1)
 		await sut.stack(error: MockError.error2)
 		await sut.stack(error: MockError.error3)
-		try await Task.waitForNextFrame()
 
 		// when
 		await sut.handle(error: MockError.error2)
 
 		// then
-		await countSubscriber.subscribe(to: sut.count)
-		await errorSubscriber.subscribe(to: sut.errors)
+		let countSubscription = await subscribe(to: sut.count)
+		let errorSubscription = await subscribe(to: sut.errors)
+
 		try await Task.waitForNextFrame()
+		sut = nil
+		let counter = await countSubscription.value
+		let errors = await errorSubscription.value
 
-		#expect(countSubscriber.accumulated.first == 2, "Error count 3 for handled error was not counted down")
+		#expect(counter.first == 2, "Error count 3 for handled error was not counted down")
 
-		try #require(errorSubscriber.accumulated.count == 2, "Accumulated error count does not match the stacked errors")
-		#expect(errorSubscriber.accumulated[0] as? MockError == .error3, "The first accumulated error is not correct")
-		#expect(errorSubscriber.accumulated[1] as? MockError == .error1, "The second accumulated error is not correct")
+		try #require(errors.count == 2, "Accumulated error count does not match the stacked errors")
+		#expect(errors[0] as? MockError == .error3, "The first accumulated error is not correct")
+		#expect(errors[1] as? MockError == .error1, "The second accumulated error is not correct")
 	}
 
 	@Test
 	func `controller only counts and stroes distinkct errors in stack order`() async throws {
 		// given
-		let sut = AlertController()
-		let countSubscriber = Subscriber<Int>()
-		let errorSubscriber = Subscriber<any Error>()
+		var sut: AlertController! = AlertController()
 
 		// when
 		await sut.stack(error: MockError.error1)
@@ -112,17 +113,21 @@ final class AlertControllerTests {
 		await sut.stack(error: MockError.error3)
 
 		// then
-		await countSubscriber.subscribe(to: sut.count)
-		await errorSubscriber.subscribe(to: sut.errors)
+		let countSubscription = await subscribe(to: sut.count)
+		let errorSubscription = await subscribe(to: sut.errors)
+
 		try await Task.waitForNextFrame()
+		sut = nil
+		let counter = await countSubscription.value
+		let errors = await errorSubscription.value
 
-		try #require(countSubscriber.accumulated.count == 1, "Accumulated count did not accumulate properly")
-		#expect(countSubscriber.accumulated[0] == 3, "Error count 3 was not recorded")
+		try #require(counter.count == 1, "Accumulated count did not accumulate properly")
+		#expect(counter[0] == 3, "Error count 3 was not recorded")
 
-		try #require(errorSubscriber.accumulated.count == 3, "Accumulated error count does not match the stacked errors")
-		#expect(errorSubscriber.accumulated[0] as? MockError == .error3, "The first accumulated error is not correct")
-		#expect(errorSubscriber.accumulated[1] as? MockError == .error1, "The second accumulated error is not correct")
-		#expect(errorSubscriber.accumulated[2] as? MockError == .error2, "The third accumulated error is not correct")
+		try #require(errors.count == 3, "Accumulated error count does not match the stacked errors")
+		#expect(errors[0] as? MockError == .error3, "The first accumulated error is not correct")
+		#expect(errors[1] as? MockError == .error1, "The second accumulated error is not correct")
+		#expect(errors[2] as? MockError == .error2, "The third accumulated error is not correct")
 	}
 }
 

@@ -7,45 +7,61 @@
 
 @ServiceActor
 final class ServiceController {
-	let builtIn: [any Services.Service]
+	let builtIn: [String: any Services.Service]
 
-	@Persist(key: "services.simulator.autoConnect")
-	var autoConnect = false
+	private let searchStream = Multicast.ThrowingStreamer<any Services.Service, any Swift.Error>()
 
 	private(set) var status: Services.Status = .unavailable
 
-	private var currentIndex = 0
+	@Persist(key: "service.selected")
+	private var selectedServiceName: String? = nil
+
+	private var selectedService: (any Services.Service)? {
+		get {
+			guard let selectedServiceName else {
+				return nil
+			}
+			return self.builtIn[selectedServiceName]
+		}
+		set {
+			self.selectedServiceName = newValue?.id
+		}
+	}
 
 	init(dependencies: Dependencies) {
 		if dependencies.builtInServices.isEmpty {
 			dependencies.noServicesErrorHandler()
 		}
-		self.builtIn = dependencies.builtInServices
-		if let autoConnect = dependencies.autoConnect {
-			self.autoConnect = autoConnect
-		}
+		self.builtIn = Dictionary(uniqueKeysWithValues: dependencies.builtInServices.map { service in
+			(service.id, service)
+		})
 	}
 
 	func autoConnect() async throws {
-		guard self.autoConnect else {
+		guard let selectedService else {
 			return
 		}
-		let services = self.search()
-		let firstAvailable = try await services.firstAvailable
-		try await firstAvailable?.connect()
+		for try await service in self.search() {
+			if service.id == selectedService.id {
+				try await selectedService.connect()
+				return
+			}
+		}
 	}
 
-	func search() -> AsyncThrowingStream<any Services.Service, any Swift.Error> {
-		AsyncThrowingStream { continuation in
+	func search() -> Multicast.ThrowingStream<any Services.Service, any Swift.Error> {
+		let isAlreadySearching = self.searchStream.isStreaming
+		let newStream = self.searchStream.makeStream()
+		if !isAlreadySearching {
 			Task {
 				do {
 					try await withThrowingTaskGroup(of: Void.self) { group in
 						self.status = .searching
-						for service in self.builtIn {
+						for service in self.builtIn.values {
 							group.addTask {
-								try await ServiceActor.run { @Sendable in
+								try await ServiceActor.run {
 									try await service.search()
-									continuation.yield(service)
+									self.searchStream.send(value: service)
 
 									if service.status == .available {
 										self.status = .available
@@ -58,53 +74,32 @@ final class ServiceController {
 						if self.status != .available {
 							self.status = .unavailable
 						}
-						continuation.finish()
+						self.searchStream.finish()
 					}
 				} catch {
-					continuation.finish(throwing: error)
+					self.searchStream.throw(error: error)
 				}
 			}
 		}
+		return newStream
 	}
 
-	func connect() async throws {
+	func connect(to service: any Services.Service) async throws {
 		self.status = .connecting
-		try await self.builtIn[self.currentIndex].connect()
+		self.selectedService = service
+		try await self.selectedService?.connect()
 		self.status = .connected
-	}
-
-	@discardableResult
-	func selectFirstService() throws(ChangeServiceWhileConnectedError) -> any Services.Service {
-		guard self.status != .connecting && self.status != .connected else {
-			throw ChangeServiceWhileConnectedError()
-		}
-
-		self.currentIndex = 0
-		return self.builtIn[self.currentIndex]
-	}
-
-	@discardableResult
-	func selectNextService() throws(ChangeServiceWhileConnectedError) -> (any Services.Service)? {
-		guard self.status != .connecting && self.status != .connected else {
-			throw ChangeServiceWhileConnectedError()
-		}
-
-		guard self.currentIndex < self.builtIn.count - 1 else {
-			return nil
-		}
-
-		self.currentIndex += 1
-		return self.builtIn[self.currentIndex]
 	}
 
 	func disconnect() async throws {
 		self.status = .disconnecting
-		try await self.builtIn[self.currentIndex].disconnect()
+		self.selectedService = nil
+		try await self.selectedService?.disconnect()
 		self.status = .disconnected
 	}
 
 	func setDelegate(_ delegate: any Services.ServiceDelegate) {
-		for service in self.builtIn {
+		for service in self.builtIn.values {
 			service.setDelegate(delegate)
 		}
 	}
@@ -113,15 +108,5 @@ final class ServiceController {
 extension ServiceController: @ServiceActor Equatable {
 	static func == (lhs: ServiceController, rhs: ServiceController) -> Bool {
 		lhs === rhs
-	}
-}
-
-private extension AsyncThrowingStream where Element == any Services.Service {
-	var firstAvailable: Element? {
-		get async throws {
-			try await first { @ServiceActor service in
-				service.status == .available
-			}
-		}
 	}
 }

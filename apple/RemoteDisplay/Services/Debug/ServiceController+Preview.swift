@@ -19,7 +19,7 @@ extension ServiceController {
 				let controller = await ServiceController(
 					dependencies: .preview(
 						services: services.enumerated().map { i, it in
-							Services.PreviewService(id: i, icon: it.icon, status: it.status)
+							Services.PreviewService(id: "\(i)", icon: it.icon, status: it.status)
 						}
 					)
 				)
@@ -36,7 +36,6 @@ private extension ServiceController.Dependencies {
 	static func preview(services: [Services.PreviewService]) -> ServiceController.Dependencies {
 		ServiceController.Dependencies(
 			builtInServices: services,
-			autoConnect: nil,
 			noServicesErrorHandler: { assertionFailure("Provide at least one service") }
 		)
 	}
