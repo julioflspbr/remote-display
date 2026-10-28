@@ -30,6 +30,7 @@ final class ServiceController {
 		guard self.autoConnect else {
 			return
 		}
+		self.autoConnect = false // that is, try only once
 		let services = self.search()
 		let firstAvailable = try await services.firstAvailable
 		try await firstAvailable?.connect()
@@ -71,6 +72,7 @@ final class ServiceController {
 		self.status = .connecting
 		try await self.builtIn[self.currentIndex].connect()
 		self.status = .connected
+		self.autoConnect = true
 	}
 
 	@discardableResult
@@ -101,6 +103,7 @@ final class ServiceController {
 		self.status = .disconnecting
 		try await self.builtIn[self.currentIndex].disconnect()
 		self.status = .disconnected
+		self.autoConnect = false
 	}
 
 	func setDelegate(_ delegate: any Services.ServiceDelegate) {

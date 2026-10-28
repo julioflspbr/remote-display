@@ -113,7 +113,7 @@ struct ServiceControllerTests {
 		// given
 		let serviceA = MockService(name: "A")
 		let serviceB = MockService(name: "B")
-		let sut = ServiceController(dependencies: .mock([serviceA, serviceB]))
+		let sut = ServiceController(dependencies: .mock([serviceA, serviceB], false))
 		serviceA.controller = sut
 		serviceB.controller = sut
 
@@ -127,6 +127,7 @@ struct ServiceControllerTests {
 		#expect(serviceA.status == .unavailable, "Service A is not selected, should be untouched")
 		#expect(serviceB.status == .connecting, "Service B is selected, should be the one connecting")
 		#expect(sut.status == .connected)
+		#expect(sut.autoConnect == true, "When the connection succeeds, autoConnect should be set")
 	}
 
 	@Test
@@ -197,7 +198,7 @@ struct ServiceControllerTests {
 	func `disconnecting the current service`() async throws {
 		// given
 		let mockService = MockService(name: "A")
-		let sut = ServiceController(dependencies: .mock([mockService]))
+		let sut = ServiceController(dependencies: .mock([mockService], true))
 		mockService.controller = sut
 
 		// when
@@ -206,13 +207,14 @@ struct ServiceControllerTests {
 		// then
 		#expect(mockService.status == .disconnecting, "The controller should be transitioned to disconnecting state before the disconnection")
 		#expect(sut.status == .disconnected, "The controller should set its status to disconnected after disconnection")
+		#expect(sut.autoConnect == false, "When the disconnection succeeds, autoConnect should be cleared")
 	}
 }
 
 private extension ServiceController.Dependencies {
 	static func mock(
 		_ builtInServices: [any Services.Service] = [],
-		_ autoConnect: Bool? = nil,
+		_ autoConnect: Bool = false,
 		noServiceErrorHandler: @escaping () -> Void = { Issue.record("There is no service to test") }
 	) -> Self {
 		ServiceController.Dependencies(builtInServices: builtInServices, autoConnect: autoConnect, noServicesErrorHandler: noServiceErrorHandler)
