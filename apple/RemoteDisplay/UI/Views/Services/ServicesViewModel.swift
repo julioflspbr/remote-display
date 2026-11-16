@@ -10,12 +10,12 @@ import SwiftUI
 @Observable @MainActor
 final class ServicesViewModel {
 	struct DisplayService: Identifiable {
-		let id: Int
+		let id: String
 		let icon: Image
 		let status: Services.Status
 	}
 
-	private var _services: [Int: DisplayService] = [:]
+	private var _services: [String: DisplayService] = [:]
 	var services: [DisplayService] {
 		Array(_services.values)
 	}
@@ -44,7 +44,7 @@ extension ServicesViewModel: Services.ServiceDelegate {
 	func serviceDidUpdateStatus(_ service: any Services.Service) {
 		if let service = service as? any Services.ServiceWithIcon {
 			Task { @MainActor in
-				_services[service.hashValue] = await DisplayService(id: service.hashValue, icon: service.icon, status: service.status)
+				await _services[service.id] = DisplayService(id: service.id, icon: service.icon, status: service.status)
 			}
 		}
 	}
@@ -52,6 +52,6 @@ extension ServicesViewModel: Services.ServiceDelegate {
 
 private extension Services.ServiceWithIcon {
 	func toDisplay() -> ServicesViewModel.DisplayService {
-		ServicesViewModel.DisplayService(id: hashValue, icon: icon, status: status)
+		ServicesViewModel.DisplayService(id: id, icon: icon, status: status)
 	}
 }

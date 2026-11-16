@@ -12,25 +12,8 @@ import Foundation
 extension Services {
 	@ServiceActor
 	final class SmokeService {
-		private enum Specs {
-			static let maxConnectionTime: Int = 5 // secs
-			static let timeoutLimit: Duration = .seconds(4) // smaller than max to simulate timeout
-		}
-		
-		struct SimulationError: LocalizedError {
-			let message: LocalizedStringResource
-			
-			var errorDescription: String? {
-				String(localized: self.message)
-			}
-		}
-		
-		init(name: String) {
-			self.name = name
-		}
-		
-		let name: String // for logging and debugging purposes
-		
+		let id: String
+
 		@Persist(key: "services.simulator.failSearch")
 		var simulateSearchFailure = false
 		@Persist(key: "services.simulator.failConnection")
@@ -44,6 +27,10 @@ extension Services {
 			didSet {
 				self.delegate?.serviceDidUpdateStatus(self)
 			}
+		}
+
+		init(name: String) {
+			self.id = name
 		}
 
 		private func simulateWork() async throws {
@@ -121,13 +108,19 @@ extension Services.SmokeService: Services.Service {
 	}
 }
 
-extension Services.SmokeService: Hashable {
-	nonisolated static func == (lhs: Services.SmokeService, rhs: Services.SmokeService) -> Bool {
-		return lhs.name == rhs.name
+extension Services.SmokeService {
+	private enum Specs {
+		static let maxConnectionTime: Int = 5 // secs
+		static let timeoutLimit: Duration = .seconds(4) // smaller than max to simulate timeout
 	}
 
-	nonisolated func hash(into hasher: inout Hasher) {
-		hasher.combine(self.name)
+	struct SimulationError: LocalizedError {
+		let message: LocalizedStringResource
+
+		var errorDescription: String? {
+			String(localized: self.message)
+		}
 	}
 }
+
 #endif

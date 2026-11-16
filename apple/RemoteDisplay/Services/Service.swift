@@ -7,7 +7,8 @@
 
 enum Services {
 	@ServiceActor
-	protocol Service: Sendable, Hashable, AnyObject {
+	protocol Service: Identifiable, Sendable {
+		var id: String { get }
 		var status: Status { get }
 		func search() async throws
 		func connect() async throws
