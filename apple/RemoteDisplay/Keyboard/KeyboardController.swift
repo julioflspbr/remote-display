@@ -10,7 +10,7 @@ import Synchronization
 
 @MainActor
 final class KeyboardController {
-	private let streamer = MulticastStreamer<Keyboard.Action>()
+	private let streamer = Multicast.Streamer<Keyboard.Action>()
 	private var service: (any Keyboard.Service)?
 	private var isShowingKeyboard = false
 
@@ -23,7 +23,7 @@ final class KeyboardController {
 		}
 	}
 
-	var actions: AsyncStream<Keyboard.Action> {
+	var actions: some Multicast.Stream<Keyboard.Action> {
 		self.streamer.makeStream()
 	}
 

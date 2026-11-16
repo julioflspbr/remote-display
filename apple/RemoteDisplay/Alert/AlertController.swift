@@ -9,10 +9,10 @@ import Foundation
 
 @AlertActor
 final class AlertController {
-	typealias AlertStream = AsyncSequence<Int, Never> & Sendable
+	typealias AlertStream = Multicast.Stream<Int>
 
-	private let countStreamer = MulticastStreamer<Int>()
-	private let errorStreamer = MulticastStreamer<any Error>()
+	private let countStreamer = Multicast.Streamer<Int>()
+	private let errorStreamer = Multicast.Streamer<any Error>()
 
 	private var stack = AlertStack() {
 		didSet {
@@ -26,7 +26,7 @@ final class AlertController {
 		return stream.distinct()
 	}
 
-	var errors: AsyncStream<any Error> {
+	var errors: some Multicast.Stream<any Error> {
 		let stream = self.errorStreamer.makeStream()
 		for error in self.stack {
 			self.errorStreamer.send(error)
