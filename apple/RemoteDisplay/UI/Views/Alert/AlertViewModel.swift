@@ -12,7 +12,15 @@ import Observation
 final class AlertViewModel {
 	private let semaphore = TaskSemaphore()
 	private var currentError: (any Error)?
+
+	@ObservationIgnored
 	private var handlingTask: Task<Void, Never>?
+
+	#if DEBUG
+	init(initialError: (any Error)? = nil) {
+		self.currentError = initialError
+	}
+	#endif
 
 	var isAlerting: Bool {
 		currentError != nil
@@ -44,23 +52,24 @@ final class AlertViewModel {
 			return []
 		}
 		if let currentError = currentError as? Alert.ErrorWithActions {
-			let dismissingActions = currentError.actions.map { action in
-				var dismissableAction = action
-				dismissableAction.action = {
-					await action.action()
-					self.currentError = nil
-					await self.semaphore.signal()
-				}
-				return dismissableAction
-			}
-			return dismissingActions.sorted
+			return currentError.actions.map { action in
+				Alert.Action(
+					title: action.title,
+					style: action.style,
+					action: { @MainActor in
+						await action.action()
+						self.currentError = nil
+						await self.semaphore.signal()
+					}
+				)
+			}.sorted
 		} else {
 			return [Alert.Action(title: .errorActionTitleOk, style: .highlighted)]
 		}
 	}
 
-	func startListningToErrors(in alertController: AlertController?) {
-		self.handlingTask?.cancel()
+	func startListeningToErrors(in alertController: AlertController?) {
+		self.stopListeningToErrors()
 
 		guard let alertController else {
 			return
@@ -75,13 +84,8 @@ final class AlertViewModel {
 
 	func stopListeningToErrors() {
 		self.handlingTask?.cancel()
+		self.handlingTask = nil
 	}
-
-	#if DEBUG
-	func setCurrentError(_ currentError: any Error) {
-		self.currentError = currentError
-	}
-	#endif
 }
 
 @MainActor

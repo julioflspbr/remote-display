@@ -12,10 +12,16 @@ actor TaskSemaphore {
 	private var isSignaled = false
 	private var continuation: CheckedContinuation<Void, Never>?
 
-	init(dependencies: Dependencies = .live) {
-		self.dependencies = dependencies
+
+	init() {
+		self.dependencies = .live
 	}
 
+	#if DEBUG
+	init(dependencies: Dependencies) {
+		self.dependencies = dependencies
+	}
+	#endif
 
 	func wait() async {
 		guard !isSignaled else {
@@ -38,8 +44,8 @@ actor TaskSemaphore {
 	}
 
 	func signal() {
-		continuation?.resume()
-		continuation = nil
+		self.continuation?.resume()
+		self.continuation = nil
 		self.isSignaled = true
 	}
 

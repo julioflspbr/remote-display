@@ -8,22 +8,20 @@
 import SwiftUI
 
 struct AlertActionButton: View {
-	let style: Alert.Action.Style
-	let title: LocalizedStringResource
-	let action: () async -> Void
+	let action: Alert.Action
 
 	var body: some View {
 		Button {
 			Task {
-				await action()
+				await action.action()
 			}
 		} label: {
-			Text(title)
+			Text(action.title)
 				.font(.alert)
-				.foregroundStyle(style.foregroundStyle)
+				.foregroundStyle(action.style.foregroundStyle)
 				.padding(.vertical, 3)
 				.padding(.horizontal)
-				.background { style.backgroundContent }
+				.background { action.style.backgroundContent }
 		}
 	}
 }
@@ -54,8 +52,8 @@ private extension Alert.Action.Style {
 
 #Preview {
 	HStack {
-		AlertActionButton(style: .default, title: "OK") { }
-		AlertActionButton(style: .highlighted, title: "Cancel") { }
+		AlertActionButton(action: Alert.Action(title: "OK", style: .default))
+		AlertActionButton(action: Alert.Action(title: "Cancel", style: .highlighted))
 	}
 	.previewBackground()
 }

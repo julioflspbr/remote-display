@@ -12,8 +12,8 @@ import Synchronization
 
 @Suite @MainActor
 struct KeyboardControllerTests {
-	@Test("toggle keyboard when controller allows it")
-	func toggleKeyboardWhenAllowed() {
+	@Test
+	func `toggle keyboard when controller allows it`() {
 		// given
 		let service = MockKeyboardService(isKeyboardVisible: false)
 		let sut = KeyboardController()
@@ -31,8 +31,8 @@ struct KeyboardControllerTests {
 		#expect(!service.isKeyboardVisible, "The keyboard should be hidden on second toggle")
 	}
 
-	@Test("controller does not allow keyboard toggling")
-	func toggleKeyboardNotAllowed() {
+	@Test
+	func `controller does not allow keyboard toggling`() {
 		// given
 		let service = MockKeyboardService(isKeyboardVisible: false)
 		let sut = KeyboardController()
@@ -46,8 +46,8 @@ struct KeyboardControllerTests {
 		#expect(!service.isKeyboardVisible, "The keyboard should not be toggled when not allowed")
 	}
 
-	@Test("canShoKeyboard automatically hides the keyboard when set to false")
-	func canShowKeyboardHidesKeyboard() {
+	@Test
+	func `canShoKeyboard automatically hides the keyboard when set to false`() {
 		// given
 		let service = MockKeyboardService(isKeyboardVisible: true)
 		let sut = KeyboardController()
@@ -66,8 +66,8 @@ struct KeyboardControllerTests {
 		#expect(!service.isKeyboardVisible, "The keyboard should be hidden when canShowKeyboard is set to false")
 	}
 
-	@Test("multiple subscribers receive the same actions and in sequence")
-	func multipleSubscribersReceiveTextInSequence() async {
+	@Test
+	func `multiple subscribers receive the same actions and in sequence`() async {
 		// given
 		var sut: KeyboardController? = KeyboardController()
 		let client1 = await MockKeyboardClient(keyboardController: sut)

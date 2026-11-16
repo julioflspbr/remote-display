@@ -10,8 +10,8 @@ import Testing
 
 @Suite
 final class TimeoutTests {
-	@Test("no timeout when execution happens successfully and within time limits")
-	func succeedOperation() async {
+	@Test
+	func `no timeout when execution happens successfully and within time limits`() async {
 		// given
 		let duration: Duration = .milliseconds(5)
 		let timeout: Duration = .milliseconds(10)
@@ -34,8 +34,8 @@ final class TimeoutTests {
 		#expect(result == expected, "The operation is within time limits and should return the expected result")
 	}
 
-	@Test("times out when execution should happen successfully but took too long")
-	func failOperationWithTimeout() async {
+	@Test
+	func `times out when execution should happen successfully but took too long`() async {
 		// given
 		let duration: Duration = .milliseconds(10)
 		let timeout: Duration = .milliseconds(5)
@@ -59,8 +59,8 @@ final class TimeoutTests {
 		#expect(result == nil, "The operation should not return a result")
 	}
 
-	@Test("the operation times out before throwing its own error")
-	func failThrowingOperationWithTimeout() async {
+	@Test
+	func `the operation times out before throwing its own error`() async {
 		// given
 		let duration: Duration = .milliseconds(10)
 		let timeout: Duration = .milliseconds(5)
@@ -79,8 +79,8 @@ final class TimeoutTests {
 		}
 	}
 
-	@Test("the operation throws its own failure")
-	func failThrowingOperationWithItsOwnError() async {
+	@Test
+	func `the operation throws its own failure`() async {
 		// given
 		let duration: Duration = .milliseconds(5)
 		let timeout: Duration = .milliseconds(10)
@@ -99,8 +99,8 @@ final class TimeoutTests {
 		}
 	}
 
-	@Test("the operations is cancelled and halts before timeout")
-	func throwTaskCancellationError() async throws {
+	@Test
+	func `the operations is cancelled and halts before timeout`() async throws {
 		// given
 		let wait: Duration = .milliseconds(2)
 		let duration: Duration = .milliseconds(5)

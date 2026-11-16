@@ -11,11 +11,11 @@ import SwiftUI
 
 extension Services {
 	final class PreviewService: Identifiable, @unchecked Sendable {
-		let id: Int
+		let id: String
 		let icon: Image
 		var status: Services.Status
 
-		init(id: Int, icon: Image, status: Services.Status = .unavailable) {
+		init(id: String, icon: Image, status: Services.Status = .unavailable) {
 			self.id = id
 			self.icon = icon
 			self.status = status
